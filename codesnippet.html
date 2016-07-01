@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<!-- saved from url=(0072)https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/ -->
+<html lang="en" class="supports_line_clamp supports_flexbox supports_custom_scrollbar touch"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="referrer" content="no-referrer">
+<meta name="superfish" content="nofish">
+
+
+
+
+
+
+	
+	
+
+
+				
+
+	
+
+		<script type="text/javascript" async="" src="./codesnippet_files/mixpanel-2-latest.min.js"></script><script async="" src="./codesnippet_files/beacon.js"></script><script async="" src="./codesnippet_files/analytics.js"></script><script src="./codesnippet_files/templates.php" defer=""></script>
+
+<!-- output_css "client_core" -->
+    <link href="./codesnippet_files/rollup-client_core.css" rel="stylesheet" type="text/css">
+
+<!-- output_css "client_primary" -->
+    <link href="./codesnippet_files/rollup-client_primary.css" rel="stylesheet" type="text/css">
+
+<!-- output_css "client_general" -->
+    <link href="./codesnippet_files/rollup-client_general.css" rel="stylesheet" type="text/css">
+
+<!-- output_css "client_secondary" -->
+    <link href="./codesnippet_files/rollup-client_secondary.css" rel="stylesheet" type="text/css">
+
+
+<!-- output_css "regular" -->
+    <link href="./codesnippet_files/incoming_call.css" rel="stylesheet" type="text/css">
+    <link href="./codesnippet_files/date_picker.css" rel="stylesheet" type="text/css">
+    <link href="./codesnippet_files/lato-1-compressed.css" rel="stylesheet" type="text/css">
+
+<script>
+window.ts_endpoint_url = "https:\/\/slack.com\/beacon\/timing";
+
+(function(e) {
+	var n=Date.now?Date.now():+new Date,r=e.performance||{},t=[],a={},i=function(e,n){for(var r=0,a=t.length,i=[];a>r;r++)t[r][e]==n&&i.push(t[r]);return i},o=function(e,n){for(var r,a=t.length;a--;)r=t[a],r.entryType!=e||void 0!==n&&r.name!=n||t.splice(a,1)};r.now||(r.now=r.webkitNow||r.mozNow||r.msNow||function(){return(Date.now?Date.now():+new Date)-n}),r.mark||(r.mark=r.webkitMark||function(e){var n={name:e,entryType:"mark",startTime:r.now(),duration:0};t.push(n),a[e]=n}),r.measure||(r.measure=r.webkitMeasure||function(e,n,r){n=a[n].startTime,r=a[r].startTime,t.push({name:e,entryType:"measure",startTime:n,duration:r-n})}),r.getEntriesByType||(r.getEntriesByType=r.webkitGetEntriesByType||function(e){return i("entryType",e)}),r.getEntriesByName||(r.getEntriesByName=r.webkitGetEntriesByName||function(e){return i("name",e)}),r.clearMarks||(r.clearMarks=r.webkitClearMarks||function(e){o("mark",e)}),r.clearMeasures||(r.clearMeasures=r.webkitClearMeasures||function(e){o("measure",e)}),e.performance=r,"function"==typeof define&&(define.amd||define.ajs)&&define("performance",[],function(){return r}) // eslint-disable-line
+})(window);
+
+</script><style type="text/css"></style>
+<script>;(function() {
+
+'use strict';
+
+
+window.TSMark = function(mark_label) {
+	if (!window.performance || !window.performance.mark) return;
+	performance.mark(mark_label);
+};
+window.TSMark('start_load');
+
+
+window.TSMeasureAndBeacon = function(measure_label, start_mark_label) {
+	if (start_mark_label === 'start_nav' && window.performance && window.performance.timing) {
+		window.TSBeacon(measure_label, (new Date()).getTime() - performance.timing.navigationStart);
+		return;
+	}
+	if (!window.performance || !window.performance.mark || !window.performance.measure) return;
+	performance.mark(start_mark_label + '_end');
+	try {
+		performance.measure(measure_label, start_mark_label, start_mark_label + '_end');
+		window.TSBeacon(measure_label, performance.getEntriesByName(measure_label)[0].duration);
+	} catch(e) { return; }
+};
+
+
+window.TSBeacon = function(label, value) {
+	var endpoint_url = window.ts_endpoint_url || 'https://slack.com/beacon/timing';
+	(new Image()).src = endpoint_url + '?data=' + encodeURIComponent(label + ':' + value);
+};
+
+})();
+</script>
+ 
+
+<script>
+window.TSMark('step_load');
+</script><noscript>&lt;meta http-equiv="refresh" content="0; URL=/messages?nojsmode=1" /&gt;</noscript>
+<script type="text/javascript">
+(function() {
+	var start_time = Date.now();
+	var logs = [];
+	var connecting = true;
+	var ever_connected = false;
+	var log_namespace;
+
+	var logWorker = function(ob) {
+		var log_str = ob.secs+' start_label:'+ob.start_label+' measure_label:'+ob.measure_label+' description:'+ob.description;
+
+		if (TS.metrics.getLatestMark(ob.start_label)){
+			TS.metrics.measure(ob.measure_label, ob.start_label);
+			TS.log(88, log_str);
+
+			if (ob.do_reset) {
+				window.TSMark(ob.start_label);
+			}
+		} else {
+			TS.maybeWarn(88, 'not timing: '+log_str);
+		}
+	}
+
+	var log = function(k, description) {
+		var secs = (Date.now()-start_time)/1000;
+
+		logs.push({
+			k: k,
+			d: description,
+			t: secs,
+			c: !!connecting
+		})
+
+		if (!window.boot_data) return;
+		if (!window.TS) return;
+		if (!TS.metrics) return;
+		if (!connecting) return;
+
+		// lazy assignment
+		log_namespace = log_namespace || (function() {
+			if (boot_data.app == 'client') return 'client';
+			if (boot_data.app == 'space') return 'post';
+			if (boot_data.app == 'api') return 'apisite';
+			if (boot_data.app == 'mobile') return 'mobileweb';
+			if (boot_data.app == 'web' || boot_data.app == 'oauth') return 'web';
+			return 'unknown';
+		})();
+
+		var modifier = (TS.boot_data.feature_no_rollups) ? '_no_rollups' : '';
+
+		logWorker({
+			k: k,
+			secs: secs,
+			description: description,
+			start_label: ever_connected ? 'start_reconnect' : 'start_load',
+			measure_label: 'v2_'+log_namespace+modifier+(ever_connected ? '_reconnect__' : '_load__')+k,
+			do_reset: false,
+		});
+	}
+
+	var setConnecting = function(val) {
+		val = !!val;
+		if (val == connecting) return;
+
+		if (val) {
+			log('start');
+			if (ever_connected) {
+				// we just started reconnecting, so reset timing
+				window.TSMark('start_reconnect');
+				window.TSMark('step_reconnect');
+				window.TSMark('step_load');
+			}
+
+			connecting = val;
+			log('start');
+		} else {
+			log('over');
+			ever_connected = true;
+			connecting = val;
+		}
+	}
+
+	window.TSConnLogger = {
+		log: log,
+		logs: logs,
+		start_time: start_time,
+		setConnecting: setConnecting
+	}
+})();
+
+if(self!==top)window.document.write("\u003Cstyle>body * {display:none !important;}\u003C\/style>\u003Ca href=\"#\" onclick="+
+"\"top.location.href=window.location.href\" style=\"display:block !important;padding:10px\">Go to Slack.com\u003C\/a>");
+</script>
+
+
+<script type="text/javascript">
+window.callSlackAPIUnauthed = function(method, args, callback) {
+	var timestamp = Date.now() / 1000;  // Unix time, with fractional seconds.
+	var version = (window.TS && TS.boot_data) ? TS.boot_data.version_uid.substring(0, 8) : 'noversion';
+	var url = '/api/' + method + '?_x_id=' + version + '-' + timestamp;
+	var req = new XMLHttpRequest();
+
+	req.onreadystatechange = function() {
+		if (req.readyState == 4) {
+			req.onreadystatechange = null;
+			var obj;
+
+			if (req.status == 200) {
+				if (req.responseText.indexOf('{') == 0) {
+					try {
+						eval('obj = '+req.responseText);
+					} catch (err) {
+						console.warn('unable to do anything with api rsp');
+					}
+				}
+			}
+
+			obj = obj || {
+				ok: false
+			}
+
+			callback(obj.ok, obj, args);
+		}
+	}
+
+	req.open('POST', url, 1);
+	req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+	var args2 = [];
+	for (i in args) {
+		if (i[0] === '_') continue;
+		args2[args2.length] = encodeURIComponent(i)+'='+encodeURIComponent(args[i]);
+	}
+
+	req.send(args2.join('&'));
+}
+</script>
+<script type="text/javascript">
+
+
+
+var TS_last_log_date = null;
+var TSMakeLogDate = function() {
+	var date = new Date();
+
+	var y = date.getFullYear();
+	var mo = date.getMonth()+1;
+	var d = date.getDate();
+
+	var time = {
+	  h: date.getHours(),
+	  mi: date.getMinutes(),
+	  s: date.getSeconds(),
+	  ms: date.getMilliseconds()
+	};
+
+	Object.keys(time).map(function(moment, index) {
+		if (moment == 'ms') {
+			if (time[moment] < 10) {
+				time[moment] = time[moment]+'00';
+			} else if (time[moment] < 100) {
+				time[moment] = time[moment]+'0';
+			}
+		} else if (time[moment] < 10) {
+			time[moment] = '0' + time[moment];
+		}
+	});
+
+	var str = y + '/' + mo + '/' + d + ' ' + time.h + ':' + time.mi + ':' + time.s + '.' + time.ms;
+	if (TS_last_log_date) {
+		var diff = date-TS_last_log_date;
+		//str+= ' ('+diff+'ms)';
+	}
+	TS_last_log_date = date;
+	return str+' ';
+}
+
+var parseDeepLinkRequest = function(code) {
+	var m = code.match(/"id":"([CDG][A-Z0-9]{8})"/);
+	var id = m ? m[1] : null;
+
+	m = code.match(/"team":"(T[A-Z0-9]{8})"/);
+	var team = m ? m[1] : null;
+
+	m = code.match(/"message":"([0-9]+\.[0-9]+)"/);
+	var message = m ? m[1] : null;
+
+	return { id: id, team: team, message: message };
+}
+
+if ('rendererEvalAsync' in window) {
+	var origRendererEvalAsync = window.rendererEvalAsync;
+	window.rendererEvalAsync = function(blob) {
+		try {
+			var data = JSON.parse(decodeURIComponent(atob(blob)));
+			if (data.code.match(/handleDeepLink/)) {
+				var request = parseDeepLinkRequest(data.code);
+				if (!request.id || !request.team || !request.message) return;
+
+				request.cmd = 'channel';
+				TSSSB.handleDeepLinkWithArgs(JSON.stringify(request));
+				return;
+			} else {
+				origRendererEvalAsync(blob);
+			}
+		} catch (e) {
+		}
+	}
+}
+</script>
+
+
+
+<script type="text/javascript">
+
+	var TSSSB = {
+		call: function() {
+			return false;
+		}
+	};
+
+</script>
+<script>TSSSB.env = (function() {
+	'use strict';
+
+	var v = {
+		win_ssb_version: null,
+		win_ssb_version_minor: null,
+		mac_ssb_version: null,
+		mac_ssb_version_minor: null,
+		mac_ssb_build: null,
+		lin_ssb_version: null,
+		lin_ssb_version_minor: null,
+		desktop_app_version: null
+	};
+	
+	var is_win = (navigator.appVersion.indexOf("Windows") !== -1);
+	var is_lin = (navigator.appVersion.indexOf("Linux") !== -1);
+	var is_mac = !!(navigator.userAgent.match(/(OS X)/g));
+
+	if (navigator.userAgent.match(/(Slack_SSB)/g) || navigator.userAgent.match(/(Slack_WINSSB)/g)) {
+		
+		var parts = navigator.userAgent.split('/');
+		var version_str = parts[parts.length-1];
+		var version_float = parseFloat(version_str);
+		var version_parts = version_str.split('.');
+		var version_minor = (version_parts.length == 3) ? parseInt(version_parts[2]) : 0;
+
+		if (navigator.userAgent.match(/(AtomShell)/g)) {
+			
+			if (is_lin) {
+				v.lin_ssb_version = version_float;
+				v.lin_ssb_version_minor = version_minor;
+			} else if (is_win) {
+				v.win_ssb_version = version_float;
+				v.win_ssb_version_minor = version_minor;
+			} else if (is_mac) {
+				v.mac_ssb_version = version_float;
+				v.mac_ssb_version_minor = version_minor;
+			}
+			
+			if (version_parts.length >= 3) {
+				v.desktop_app_version = {
+					major: parseInt(version_parts[0]),
+					minor: parseInt(version_parts[1]),
+					patch: parseInt(version_parts[2])
+				}
+			}
+		} else {
+			
+			v.mac_ssb_version = version_float;
+			v.mac_ssb_version_minor = version_minor;
+			
+			
+			
+			var app_ver = window.macgap && macgap.app && macgap.app.buildVersion && macgap.app.buildVersion();
+			var matches = String(app_ver).match(/(?:\()(.*)(?:\))/);
+			v.mac_ssb_build = (matches && matches.length == 2) ? parseInt(matches[1] || 0) : 0;
+		}
+	}
+
+	return v;
+})();
+</script>
+
+<script type="text/javascript">
+	TSSSB.call('updateTitleBarColor', "");
+	
+
+	window.macgap_is_in_active_space = true; // true in all cases by default
+
+	// now if we can tell, are we actually in the active space?
+	if (window.macgap && window.macgap.window && window.macgap.window.isOnActiveSpace) {
+		window.macgap_is_in_active_space = !!window.macgap.window.isOnActiveSpace();
+	}
+
+	if (window.localStorage && navigator.serviceWorker) {
+		var workersOptIn = window.localStorage.getItem("SERVICE_WORKERS");
+		var isDevMode = window.location.hostname.match(/dev[0-9]+\./);
+
+		if (workersOptIn /* || isDevMode */) {
+			navigator.serviceWorker.register('/serviceworker.js')
+				.then(function(req) {
+					console.log("*** Service Workers are now Registered! ***");
+					console.log("If you are seeing old content or you believe this is causing you grief, please jump into #dhtml");
+				}).catch(function(err) {
+					console.log("Service registration failed!");
+					console.error(err);
+				});
+		}
+	}
+
+	// listen for changes to the active space
+	window.spaceChanged = function(active) {
+		window.macgap_is_in_active_space = !!active;
+		if (window.TS && TS.ui && TS.ui.onMacSpaceChanged) {
+			TS.ui.onMacSpaceChanged(window.macgap_is_in_active_space);
+		}
+	}
+
+	// called by ssb when online
+	var proceedToApp = function(last_team_domain_arg) {
+		// do nothing, we're already in the app
+	}
+
+	// called by ssb when offline
+	var showOfflineMsg = function() {
+		// if we are still loading, go back to the initial page
+
+		// try catch here in case we don't even load to the body, in which case document.getElementsByTagName('body') is empty
+		try {
+			if (document.getElementsByTagName('body')[0].className.indexOf('loading') != -1) {
+				TSSSB.call('reload');
+			}
+		} catch(err) {
+			TSSSB.call('reload');
+		}
+	}
+
+	var htmlEntities = function(str) {
+		if (!str && str !== 0) return '';
+		// replace HTML tags in a string with encoded entities
+		return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	};
+
+	TSSSB.call('didStartLoading', 60000);
+	TSSSB.call('disableSecureInput');
+
+</script>
+    <title>codesnippets | ElevenFiftySummerTracks Slack</title>
+    <meta name="author" content="Slack">
+
+
+
+<style type="text/css">
+
+	/* 	this is a static div that provides a background colour for the
+		channels column during resize: avoids a white gap from appearing
+		we show it above the channel column during loading
+	*/
+	#col_channels_bg {
+		height: 1800px;
+		width: 220px;
+		background: #4D394B;
+		top: 0;
+		left: 0;
+	}
+
+	</style>
+
+
+
+
+    <!--[if lt IE 9]>
+    <script src="https://a.slack-edge.com/ef0d/js/libs/html5shiv.js"></script>
+    <![endif]-->
+
+
+<link id="favicon" rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4JJREFUeNqMVj1MFEEUntlsx1FzQgmXnI13JGA0XIWJmvgTEzAxBhXbw0Rjg4VWamFLIjWGUkwgFoIFNkAhJN5VHGEpMVBz1OPbfW/evJldyc1d9t7Nzrzf7/3o+9fvqmwZY5RYWmvcQQKewZl0396Uh5kb0jFT/K5QhsotJ75on4lYaZIWWMAy8jelbD7DJz3TlYl0SugL1OQV8JLeIAJIZTyFjHVRSppQa95kpeRTacc9PKmzT7YiYqpCA1PB1jjcD000wpQi7mh3JIMeRII9k8eYp4oyUg/pCVix5zJdAFAg+kp98x/f1Mbr3bPu45uPkN3aznd4tndb716+ZT+z7nw3QhTltaMLGa+JGw3gjuzw/JWxGp7s6y+lKiM7Gwp2XWoByLQBUvjLmcEXRqojyK4FArIzvNPea1G8tZZ3WemYzUklaWejxFNtrE7sMgvg05hskMjfLSVSXaY9CQhcJiMGXAYGB4AoD5VxZ2KygRYPWwtGqpVKtQI735ZXgiyhQN67dkdKplAbNf3k4dPmM9XbSjrJ6+evJFIJSzrLA7trI5N5CXXvcW1vbiltPSrSIs0VsCBwnKEkpUjMzb+49eA2EIufPq+v/oBjUzPTaNyXxSXwDOqbL7pUTW0KK1m8JM3uTg4SxG5tnDB6+veUqoBWQT5hqOAZKRNWRFIkMxlSjBGZ7B8i2J3IziGKDDsHwT79G+crOPG9XIG/jnsnwVwr9Zfgi5vloUvwPeokkOEeOrVIWOhoaIvMZ+D1fuFDjxHm+uFSSjg5MlzDtSvUAO3eIXRyfBIEkksnJZos8Sh8ZfkrhBSI2eYsehwAc3RwBMTUzBT6CvDT3mvDmfOzrqxCxu+Asd/EDQOitftHxnNjdb3bPYdLzfk5wv6vrWQ/8Qq1bNS2vsZeERWRAHq4OsxOAEdjhMuDZQuqpKCRcA5bvMZeC/ObbX181CuZWtevjrqq52tNrHMZF8ms81ouVIuhAcYoZjjXD6jbdIUbgHEhlO06LmxhqALwPTleAv9AqcFXP9c20Hs7m9uyqJFOHGqR2Ronu8KZR3g21bZwCAumIzEREPqjoDbJHHH7/3EjR5hfSYy4RPPGN+VyJGh+8qScnaQRqB/PWPA3Cg00xTOAlOFxVDoYyyRS0yBfcDkwzjk3531vBDZezYjxV1nMkY2y//DMI2NQNJsWOvafAAMAxE3MJSrFyPAAAAAASUVORK5CYII=" sizes="16x16 32x32 48x48" type="image/png">
+
+<link rel="icon" href="https://a.slack-edge.com/0180/img/icons/app-256.png" sizes="256x256" type="image/png">
+
+<link rel="apple-touch-icon-precomposed" sizes="152x152" href="https://a.slack-edge.com/66f9/img/icons/ios-152.png">
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://a.slack-edge.com/66f9/img/icons/ios-144.png">
+<link rel="apple-touch-icon-precomposed" sizes="120x120" href="https://a.slack-edge.com/66f9/img/icons/ios-120.png">
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="https://a.slack-edge.com/66f9/img/icons/ios-114.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="https://a.slack-edge.com/0180/img/icons/ios-72.png">
+<link rel="apple-touch-icon-precomposed" href="https://a.slack-edge.com/66f9/img/icons/ios-57.png">
+
+<meta name="msapplication-TileColor" content="#FFFFFF">
+<meta name="msapplication-TileImage" content="https://a.slack-edge.com/66f9/img/icons/app-144.png">
+	
+		<script>
+			if (window.location.host == 'slack.com' && window.location.search.indexOf('story') < 0) {
+				document.cookie = '__cvo_skip_doc=' + escape(document.URL) + '|' + escape(document.referrer) + ';path=/';
+			}
+		</script>
+	
+
+	
+	<script type="text/javascript">
+				(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		ga('create', "UA-106458-17", 'slack.com');
+
+				
+		ga('send', 'pageview');
+	
+		(function(e,c,b,f,d,g,a){e.SlackBeaconObject=d;
+		e[d]=e[d]||function(){(e[d].q=e[d].q||[]).push([1*new Date(),arguments])};
+		e[d].l=1*new Date();g=c.createElement(b);a=c.getElementsByTagName(b)[0];
+		g.async=1;g.src=f;a.parentNode.insertBefore(g,a)
+		})(window,document,"script","https://a.slack-edge.com/dcf8/js/libs/beacon.js","sb");
+		sb('set', 'token', '3307f436963e02d4f9eb85ce5159744c');
+
+					sb('set', 'user_id', "U1LE5CWTF");
+							sb('set', 'user_' + "batch", "signup_api");
+							sb('set', 'user_' + "created", "2016-06-26");
+						sb('set', 'name_tag', "efasummertracks" + '/' + "amnivore21");
+				sb('track', 'pageview');
+
+		function track(a){ga('send','event','web',a);sb('track',a);}
+
+	</script>
+
+
+		<script type="text/javascript">
+		
+		(function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+		for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
+		
+
+		mixpanel.init("12d52d8633a5b432975592d13ebd3f34");
+
+		
+			function mixpanel_track(){if(window.mixpanel)mixpanel.track.apply(mixpanel, arguments);}
+			function mixpanel_track_forms(){if(window.mixpanel)mixpanel.track_forms.apply(mixpanel, arguments);}
+			function mixpanel_track_links(){if(window.mixpanel)mixpanel.track_links.apply(mixpanel, arguments);}
+		
+	</script>
+
+  <style type="text/css"></style><style type="text/css" id="dynamic_content_max_width_rule">			#msgs_div div.dynamic_content_max_width {				max-width:1100px;			}		</style></head>
+
+    <body ondragover="return false" class="feature_indigenous_scroll no_attachment_max_width banner_showing light_theme"><div id="coachmark_bg" class="hidden"></div>
+<div id="drop-zone">
+	<div class="instructions">
+		<div class="instructions_icons"></div>
+		<h1>Drop to upload to Slack</h1>
+		<p class="drop_tip">Hold down <span class="keyboard">Shift</span> while dropping to upload immediately.</p>
+		<p class="drop_tip">For more shortcuts and keyboard commands, press <span id="drag_drop_mac_key" class="keyboard">Control</span><span class="keyboard">?</span></p>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+setTimeout(function() {
+	if (document.getElementById('self_help_link_div')) {
+		document.getElementById('self_help_link_div').style.opacity = 1;
+	}
+}, 30000);
+
+</script>
+
+<div id="client-ui" class="container-fluid sidebar_theme_default flex_pane_showing">
+
+	<div id="banner" class="" style="display: block;">
+	<div id="notifications_banner" class="banner_content">
+		Slack needs your permission to <a>enable desktop notifications</a>. <a class="cursor_pointer bold dismiss"><i class="ts_icon ts_icon_times"></i></a>
+	</div>
+	<div id="notifications_dismiss_banner" class="banner_content hidden">
+		We strongly recommend enabling desktop notifications if you'll be using Slack on this computer.
+		<span class="notifications_dismiss_options"><a class="cursor_pointer" onclick="TS.ui.banner.close(); TS.ui.banner.growlsPermissionPrompt();">Enable notifications</a> •
+		<a class="cursor_pointer" onclick="TS.ui.banner.close()">Ask me next time</a> • 
+		<a class="cursor_pointer" onclick="TS.ui.banner.closeNagAndSetCookie()">&nbsp;Never ask again on this computer</a></span>
+	</div>
+	<div id="macssb1_banner" class="banner_content hidden">
+		You should consider <a class="apps_page_link" href="https://efasummertracks.slack.com/downloads" target="_new" onclick="TS.ui.banner.onClickedMacSSB1Link(true)">trying out the Slack Mac App</a>! It has wonderful support for <b>multiple teams</b> at once. <a class="bold dismiss"><i class="ts_icon ts_icon_times_circle"></i></a>
+	</div>
+	<div id="macssb1_dismiss_banner" class="banner_content hidden">
+					Are you sure? You can install it from the <a href="https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/" target="_new" onclick="TS.ui.banner.onClickedMacSSB1Link()">Mac App Store</a>, <nobr>or by
+			</nobr><nobr><a href="https://efasummertracks.slack.com/ssb/download-osx" target="_new" onclick="TS.ui.banner.onClickedMacSSB1Link()">direct download</a>.</nobr>
+				<a class="dismiss_link" onclick="TS.ui.banner.onClickedMacSSB1Link(true)">Never ask me again.</a>
+	</div>
+	<div id="macssb2_banner" class="banner_content hidden">
+		A shiny new version of Slack is available. <a class="apps_page_link" href="https://efasummertracks.slack.com/downloads" target="_new" onclick="TS.ui.banner.onClickedMacSSB2Link(true)">Upgrade your Slack App today!</a> <a class="bold dismiss"><ts-icon class="ts_icon_times_circle"></ts-icon></a>
+	</div>
+	<div id="winssb1_banner" class="banner_content hidden">
+		You should consider trying out the brand new <a class="apps_page_link" href="https://efasummertracks.slack.com/downloads" target="_new" onclick="TS.ui.banner.onClickedWinSSB1Link(true)">Slack Windows App</a>! It has wonderful support for <b>multiple teams</b> at once. <a class="bold dismiss"><i class="ts_icon ts_icon_times_circle"></i></a>
+	</div>
+	<div id="winssb1_dismiss_banner" class="banner_content hidden">
+		Are you sure? You can 
+		<a href="https://slack.com/ssb/download-win" target="_new" onclick="TS.ui.banner.onClickedWinSSB1Link()">download</a> it now.
+		<a class="dismiss_link" onclick="TS.ui.banner.onClickedWinSSB1Link(true)">Never ask me again.</a>
+	</div>
+	<div id="macssb_osx_deprecated_banner" class="banner_content mustard_yellow_bg hidden">
+		Your version of OS X won't be supported for much longer. <a target="_blank" href="https://get.slack.help/hc/en-us/articles/207677868">Learn more</a> to keep using Slack. <a class="bold dismiss"><i class="ts_icon ts_icon_times_circle"></i></a>
+	</div>
+</div>
+<header id="client_header">
+
+	<div id="active_channel_name_overlay" class="onboarding_overlay hidden"></div>
+
+
+		<div id="team_menu" data-qa="team_menu_selector" class="">
+		<button class="notifications_menu_btn ts_icon ts_icon_bell_o ts_tip ts_tip_bottom ts_tip_float btn_unstyle ts_tip_hidden" aria-label="Notifications Menu">
+			<span class="notifications_menu_tip ts_tip_tip">Notifications</span>
+		</button>
+		<div class="team_name_container top_margin">
+			<button class="ts_icon ts_icon_chevron_down team_name_caret btn_unstyle" aria-label="Team Menu" aria-haspopup="true"></button>
+			<span id="team_name" class="overflow_ellipsis">ElevenFiftySummerTracks</span>
+		</div>
+		<div id="team_menu_overlay" class="onboarding_overlay hidden">
+			<div class="overlay_mock_text seventy_percent_width"></div>
+		</div>
+		<div id="presence_container" class="no_wrap ts_tip ts_tip_bottom ts_tip_left">
+			<i id="presence" class="ts_icon ts_icon_presence active" style="opacity: 0.98;"></i>
+			<span class="ts_tip_tip">active</span>
+		</div>
+		<span id="team_header_user_name" class="current_user_name overflow_ellipsis">amnivore21</span>
+	</div>
+
+
+		<div class="channel_header">
+		<div class="messages_header"><div class="channel_title"> 
+		<h2 id="channel_name_container" class="channel_name_container">
+			<span id="channel_name" class="channel_name" data-qa="channel_name">
+					<span id="channel_title">#codesnippets</span>
+</span><a id="mute_container" class="mute_container ts_tip ts_tip_bottom"></a><div id="star_container" class="star_container"><button data-channel-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_channel ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this channel">Star this channel</span></button></div>
+		</h2>
+
+		<!-- channel members -->
+		<div id="channel_header_info">
+			<span id="channel_members_toggle_count" class="blue_hover ts_tip ts_tip_bottom ts_tip_leftish">31 members<span class="ts_tip_tip">View member list (18/31 online)</span></span>
+			<span class="topic_divider">|</span><span id="topic_inline_edit" class="channel_topic inline_edit inline_edit_editable inline_edit_hover">
+				<span class="inline_edit_inner">
+					<span id="channel_topic_text" class="inline_edit_input no_jumbomoji" data-placeholder="Add a topic"></span>
+				</span>
+			</span>
+		</div>
+</div>
+
+<div class="channel_title_info">
+		<!-- calls button -->
+		<div id="channel_calls_container" class="channel_calls_container"><a id="channel_calls_button" class="channel_header_icon channel_calls_button ts_tip ts_tip_bottom ts_tip_multiline ts_tip_delay_300 blue_hover">
+	<span class="ts_tip_tip"><span class="ts_tip_multiline_inner">
+				Only paid teams can start calls from channels.
+			</span></span><ts-icon class="ts_icon_phone call_icon call_window_offline  "></ts-icon></a>
+</div><a id="channel_actions_toggle" class=" blue_hover channel_actions_toggle channel_header_icon ts_tip ts_tip_bottom"><span class="ts_tip_tip">Channel Settings</span><ts-icon class="ts_icon_cog_o"></ts-icon></a><a id="details_toggle" class="channel_header_icon blue_hover channel_details_toggle ts_tip ts_tip_bottom "><span class="ts_tip_tip">Show Channel Details</span><ts-icon class="ts_icon_side_panel"></ts-icon></a><div class="divider_bar"></div>
+</div>
+</div>
+		<div class="flex_header">
+						<div id="search_container">
+				<form role="search" method="get" action="https://efasummertracks.slack.com/search" id="header_search_form" class="search_form no_bottom_margin active">
+										<div class="highlighter_wrapper"><input type="text" id="search_terms" name="q" class="search_input search_input_highlighted" placeholder="Search" autocomplete="off" maxlength="250"><div class="highlighter_underlay" style="outline: rgb(85, 84, 89) none 0px; border-width: 1px; text-indent: 0px; font-size: 15px; line-height: normal; font-family: Slack-Lato, appleLogo, sans-serif; letter-spacing: 0px; word-spacing: 0px; font-weight: 400; margin: 2px 30.4px; width: 313.2px; top: 0px; left: 0px;"><span class="modifier">in:</span><span class="keyword">#codesnippets</span> <span class="ghost_text">&nbsp;&nbsp;</span></div></div>
+					<i class="ts_icon ts_icon_search icon_search"></i>
+					<a id="search_clear" class="search_clear_icon" aria-label="Clear search field"><ts-icon class="ts_icon_times_circle"></ts-icon></a>
+				<div class="popover_menu popover_search_menu showing_query_header hidden" id="search_autocomplete_popover"><span class="arrow"></span><span class="arrow_shadow"></span><div id="autocomplete_menu" class="content search_menu"><div class="autocomplete_calendar hidden"><div class="pickmeup pmu-view-days" style="position: relative; display: inline-block;"><div class="pmu-instance"><nav><div class="pmu-prev pmu-button" style="visibility: visible;">◀</div><div class="pmu-month pmu-button">June 2016</div><div class="pmu-next pmu-button" style="visibility: hidden;">▶</div></nav><nav class="pmu-day-of-week"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></nav><div class="pmu-years"><div class=" pmu-button">2010</div><div class=" pmu-button">2011</div><div class=" pmu-button">2012</div><div class=" pmu-button">2013</div><div class=" pmu-button">2014</div><div class=" pmu-button">2015</div><div class="pmu-selected pmu-button">2016</div><div class="pmu-disabled pmu-button">2017</div><div class="pmu-disabled pmu-button">2018</div><div class="pmu-disabled pmu-button">2019</div><div class="pmu-disabled pmu-button">2020</div><div class="pmu-disabled pmu-button">2021</div></div><div class="pmu-months"><div class=" pmu-button">Jan</div><div class=" pmu-button">Feb</div><div class=" pmu-button">Mar</div><div class=" pmu-button">Apr</div><div class=" pmu-button">May</div><div class="pmu-selected pmu-button">Jun</div><div class="pmu-disabled pmu-button">Jul</div><div class="pmu-disabled pmu-button">Aug</div><div class="pmu-disabled pmu-button">Sep</div><div class="pmu-disabled pmu-button">Oct</div><div class="pmu-disabled pmu-button">Nov</div><div class="pmu-disabled pmu-button">Dec</div></div><div class="pmu-days"><div class="pmu-not-in-month pmu-sunday pmu-button">29</div><div class="pmu-not-in-month pmu-button">30</div><div class="pmu-not-in-month pmu-button">31</div><div class=" pmu-button">1</div><div class=" pmu-button">2</div><div class=" pmu-button">3</div><div class="pmu-saturday pmu-button">4</div><div class="pmu-sunday pmu-button">5</div><div class=" pmu-button">6</div><div class=" pmu-button">7</div><div class=" pmu-button">8</div><div class=" pmu-button">9</div><div class=" pmu-button">10</div><div class="pmu-saturday pmu-button">11</div><div class="pmu-sunday pmu-button">12</div><div class=" pmu-button">13</div><div class=" pmu-button">14</div><div class=" pmu-button">15</div><div class=" pmu-button">16</div><div class=" pmu-button">17</div><div class="pmu-saturday pmu-button">18</div><div class="pmu-sunday pmu-button">19</div><div class=" pmu-button">20</div><div class=" pmu-button">21</div><div class=" pmu-button">22</div><div class=" pmu-button">23</div><div class=" pmu-button">24</div><div class="pmu-saturday pmu-button">25</div><div class="pmu-sunday pmu-button">26</div><div class=" pmu-button">27</div><div class="pmu-selected pmu-today pmu-button"><span class="pmu-today-border">28</span></div><div class="pmu-disabled pmu-button">29</div><div class="pmu-disabled pmu-button">30</div><div class="pmu-not-in-month pmu-disabled pmu-button">1</div><div class="pmu-not-in-month pmu-saturday pmu-disabled pmu-button">2</div><div class="pmu-not-in-month pmu-sunday pmu-disabled pmu-button">3</div><div class="pmu-not-in-month pmu-disabled pmu-button">4</div><div class="pmu-not-in-month pmu-disabled pmu-button">5</div><div class="pmu-not-in-month pmu-disabled pmu-button">6</div><div class="pmu-not-in-month pmu-disabled pmu-button">7</div><div class="pmu-not-in-month pmu-disabled pmu-button">8</div><div class="pmu-not-in-month pmu-saturday pmu-disabled pmu-button">9</div></div></div></div></div><div id="" class="monkey_scroll_wrapper "><div class="monkey_scroll_bar hidden" style="margin-left: 4.5px; height: 528px;"><div class="monkey_scroll_handle " style="left: -3px; height: 510.783px; top: 0px;">	<div class="monkey_scroll_handle_inner "></div></div></div><div class="monkey_scroll_hider" style="width: 100%;"><div class="autocomplete_menu_scrollable monkey_scroller"><div style="max-height: 534px;">
+
+
+
+
+
+	<div class="section_header"><span class="header_label search_mini">Channels</span></div>
+	<ol class="results channels">
+			<li data-replacement="in:#codesnippets">
+				<button class="result_item_btn btn_unstyle" type="button">
+					<strong>#codesnippets</strong>
+
+					<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+				</button>
+			</li>
+
+	</ol>
+
+	<div class="section_header"><span class="header_label search_mini">Team members</span></div>
+	<ol class="results dms">
+				<li data-replacement="in:@ctornquist93">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Chloe Tornquist </strong>
+							<span class="muted_text">@ctornquist93</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@cdpeak">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Collin Peak </strong>
+							<span class="muted_text">@cdpeak</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@cwainscott">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Chris Wainscott </strong>
+							<span class="muted_text">@cwainscott</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@atadsp">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Chris Beckman </strong>
+							<span class="muted_text">@atadsp</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@jc7631">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Joe Cassidy </strong>
+							<span class="muted_text">@jc7631</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@pauloconnor">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Paul O'Connor </strong>
+							<span class="muted_text">@pauloconnor</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+				<li data-replacement="in:@stevec">
+					<button class="result_item_btn btn_unstyle" type="button">
+							<strong>Steve Cocca </strong>
+							<span class="muted_text">@stevec</span>
+
+						<ts-icon class="ts_icon_plus_square_o ts_icon_inherit modifier_icon" aria-hidden="true"></ts-icon>
+					</button>
+				</li>
+
+	</ol>
+
+
+
+
+
+
+
+
+
+
+</div></div></div></div></div></div></form>
+			</div><a id="recent_mentions_toggle" class="channel_header_icon ts_tip ts_tip_bottom">
+				<span class="ts_tip_tip">Show Mentions &amp; Reactions</span>
+				<ts-icon class="ts_icon_mentions"></ts-icon>
+			</a><a id="stars_toggle" class="channel_header_icon ts_tip ts_tip_bottom ts_tip_rightish">
+				<span class="ts_tip_tip">Show Starred Items</span>
+				<ts-icon class="ts_icon_star_o"></ts-icon>
+			</a><a id="flex_menu_toggle" class="channel_header_icon blue_hover ts_tip ts_tip_bottom ts_tip_right normal">
+				<span class="ts_tip_tip">More Items</span>
+				<div id="whats_new_burst" class="all_read"></div>
+				<ts-icon class="ts_icon_vertical_ellipsis"></ts-icon>
+				<span class="help_icon_icon" id="help_icon_circle_count">0</span>
+				<div class="flex_menu_download_circle"></div>
+			</a>
+		</div>
+	</div>
+<div id="rxn_toast_div" class="hidden ts_tip ts_tip_bottom"></div></header> <!-- client header -->
+
+
+		
+		<div id="footer">
+		<div id="footer_overlay" class="onboarding_overlay hidden"></div>
+		<div id="footer_msgs" class="">
+						<div id="msg_preview" class="hidden lato_regular">
+				<div id="msg_preview_msg" class="message"></div>
+			</div>
+
+								<div id="messages-input-container" class="" style="height: 42px;">
+
+								<a onclick="return false;" id="primary_file_button" class="file_upload_btn" aria-label="File menu" style="height: 42px;">
+					<i class="ts_icon ts_icon_plus_thick"></i>
+				</a>
+
+				<form id="message-form" onsubmit="TS.view.submit(); return false;" data-qa="message_form" style="height: 42px;">
+										<a id="main_emo_menu" class="emo_menu" aria-label="Emoji menu">
+						<i class="ts_icon ts_icon_circle_fill"></i>
+						<i class="ts_icon ts_icon_smile_o"></i>
+						<i class="ts_icon ts_icon_happy_smile"></i>
+					</a>
+					<textarea id="message-input" class="with-emoji-menu" aria-label="Message input for Channel #codesnippets" data-qa="message_input" style="overflow-y: hidden; height: 42px;" autocorrect="off" autocomplete="off" spellcheck="true"></textarea>
+					<div id="message-input-message" class=""><span></span></div>
+					<input type="file" id="file-upload" data-qa="file_upload" class="offscreen" multiple="multiple" aria-hidden="true">
+				</form>
+			</div>
+		
+			<div id="notification_bar" class="wide really_wide">
+				<div id="typing_text" class="overflow_ellipsis" role="status" aria-live="polite" aria-atomic="true"></div>
+				<div id="special_formatting_text" class="special_formatting_tips" aria-hidden="true"><b>*bold*</b> <i>_italics_</i> ~strike~ <code>`code`</code> <code class="preformatted">```preformatted```</code> <span class="quote">&gt;quote</span></div>
+				<div id="snippet_prompt" class="hidden">
+					<div class="warning">
+						Text is too long!
+						<a class="snippet_link ts_tip ts_tip_top ts_tip_multiline" onclick="TS.client.msg_input.createSnippetFromPrompt()">
+							<span class="ts_tip_tip">
+								<span class="ts_tip_multiline_inner">
+									A snippet is a text file that can be much longer than a normal message.
+								</span>
+							</span>
+							Make this a snippet
+						</a>
+						instead?
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="footer_archives" class="hidden" tabindex="0">
+			<div id="footer_archives_table">
+				<div id="footer_archives_left"><span id="footer_archives_text">You are viewing a preview of <b>#javascriptteam</b></span></div>
+				<div id="footer_archives_right"><a class="btn btn_small" id="footer_archives_action_button">Join Channel</a><br><span id="footer_archives_action_tip"><span class="tiny dialog_cancel_hint"><strong aria-label="return">Return <span class="return_char">↵</span></strong> to join</span></span></div>
+			</div>
+		</div>
+	</div>
+
+		<div id="client_body">
+
+		<div id="col_messages">
+
+			<div class="row-fluid">
+
+								<div id="col_channels_bg" style="z-index: 0;"></div>
+				<div id="col_channels" class="show_presence channels_list_holder no_unread_msgs_badges">
+					<div id="col_channels_overlay" class="onboarding_overlay hidden">
+						<div class="overlay_mock_text forty_percent_width"></div>
+						<div class="overlay_mock_text fifty_percent_width"></div>
+						<div class="overlay_mock_text thirty_five_percent_width"></div>
+					</div>
+
+					<div id="channels_scroller" style="height: 754px; visibility: visible;">
+
+						
+						<div id="unread" role="navigation" class="section_holder hidden" aria-label="Unreads">
+							<h2 id="unread_section_header" class="overflow_ellipsis">
+								<ts-icon class="ts_icon_channel_list ts_icon_inherit" aria-hidden="true"></ts-icon>
+								<span id="unread_msgs" class="hidden">Unread Messages</span>
+								<span id="unread_mntns" class="hidden">Unread Mentions</span>
+							</h2>
+							<ul id="unread-list"></ul>
+						</div>
+
+						<div id="starred_div" role="navigation" class="section_holder hidden" aria-label="Starred conversations">
+							<h2 id="starred_section_header" class="overflow_ellipsis">
+								<ts-icon class="ts_icon_star" aria-hidden="true"></ts-icon>								Starred
+							</h2>
+							<ul id="starred-list"></ul>
+						</div>
+
+						<div id="channels" role="navigation" class="section_holder" aria-label="Channels"><button id="new_channel_btn" class="ts_icon ts_icon_plus_circle channels_list_new_btn btn_unstyle" data-toggle="tooltip" data-action="create_channel" title="" aria-label="Create new channel" data-original-title="Create new channel"></button>
+							
+
+							<h2 id="channels_header" class="hoverable">
+																											<button class="channel_list_header_label btn_unstyle" data-qa="channel_list_header_label" data-toggle="tooltip" title="" aria-label="Browse all 1 channels" data-original-title="Browse all channels">
+											Channels
+											<span class="header_count">(<span id="channel_header_count">5</span>)</span>
+										</button>
+																								</h2>
+
+							<ul id="channel-list" aria-label="channels">	<li class="channel_C1LLA50P8 channel active ">
+		<div class="hotness_icon hidden" id="hotness_C1LLA50P8"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/archives/codesnippets" target="new_1467128351475" class="channel_name" data-channel-id="C1LLA50P8" aria-label="codesnippets, active channel">
+				<ts-icon class="ts_icon_channel_pane_hash prefix" aria-hidden="true"></ts-icon>
+			<span class="unread_msg_C1LLA50P8 unread_msgs hidden">
+				0
+			</span>
+			<span class="unread_highlight_C1LLA50P8 unread_highlights hidden">
+				0
+			</span>
+			<span class="display_flex">
+				<span class="overflow_ellipsis">
+					codesnippets
+				</span>
+
+				
+			</span>
+		</a>
+	</li>
+	<li class="channel_C1LD0NR5W channel ">
+		<div class="hotness_icon hidden" id="hotness_C1LD0NR5W"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/archives/general" target="new_1467128351475" class="channel_name" data-channel-id="C1LD0NR5W" aria-label="general, channel">
+				<ts-icon class="ts_icon_channel_pane_hash prefix" aria-hidden="true"></ts-icon>
+			<span class="unread_msg_C1LD0NR5W unread_msgs hidden">
+				0
+			</span>
+			<span class="unread_highlight_C1LD0NR5W unread_highlights hidden">
+				0
+			</span>
+			<span class="display_flex">
+				<span class="overflow_ellipsis">
+					general
+				</span>
+
+				
+			</span>
+		</a>
+	</li>
+	<li class="channel_C1LKY0RML channel ">
+		<div class="hotness_icon hidden" id="hotness_C1LKY0RML"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/archives/javascriptteam" target="new_1467128351475" class="channel_name" data-channel-id="C1LKY0RML" aria-label="javascriptteam, channel">
+				<ts-icon class="ts_icon_channel_pane_hash prefix" aria-hidden="true"></ts-icon>
+			<span class="unread_msg_C1LKY0RML unread_msgs hidden">
+				0
+			</span>
+			<span class="unread_highlight_C1LKY0RML unread_highlights hidden">
+				0
+			</span>
+			<span class="display_flex">
+				<span class="overflow_ellipsis">
+					javascriptteam
+				</span>
+
+				
+			</span>
+		</a>
+	</li>
+	<li class="channel_C1LBPTY3D channel unread ">
+		<div class="hotness_icon hidden" id="hotness_C1LBPTY3D"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/archives/random" target="new_1467128351475" class="channel_name" data-channel-id="C1LBPTY3D" aria-label="random, channel, 26 unread messages">
+				<ts-icon class="ts_icon_channel_pane_hash prefix" aria-hidden="true"></ts-icon>
+			<span class="unread_msg_C1LBPTY3D unread_msgs ">
+				9+
+			</span>
+			<span class="unread_highlight_C1LBPTY3D unread_highlights hidden">
+				0
+			</span>
+			<span class="display_flex">
+				<span class="overflow_ellipsis">
+					random
+				</span>
+
+				
+			</span>
+		</a>
+	</li>
+</ul>
+							<div class="clear_both"></div>
+
+							<button id="channel_list_create_channel_link" class="channel_list_add_link btn_unstyle hidden" data-action="create_channel"><i class="ts_icon ts_icon_plus_small float_left"></i> Create a channel</button>
+						</div>
+
+						<div id="direct_messages" role="navigation" class="section_holder" aria-label="Direct Messages"><button id="new_dm_btn" class="ts_icon ts_icon_plus_circle channels_list_new_btn btn_unstyle" data-toggle="tooltip" title="" aria-label="Open a Direct Message" data-qa="new_dm_btn" data-original-title="Open a Direct Message"></button>
+							
+
+							<h2 id="direct_messages_header" class="hoverable" data-toggle="tooltip" title="" aria-label="Direct Messages" data-original-title="Open a Direct Message">Direct Messages <span class="header_count">(<span id="dm_header_count">47</span>)</span></h2>
+							<ul id="im-list">	<li class="member_USLACKBOT member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LCQ203V"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/slackbot" target="new_1467128351475" class="im_name nuc color_USLACKBOT color_757575" data-member-id="USLACKBOT" aria-label="">
+			<span class="unread_highlight_USLACKBOT unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<i class="ts_icon ts_icon_heart slackbot_icon"></i>
+					slackbot
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with slackbot" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LE5CWTF member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LDUM44U"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/amnivore21" target="new_1467128351475" class="im_name nuc color_U1LE5CWTF color_4cc091" data-member-id="U1LE5CWTF" aria-label="amnivore21, direct message, active">
+			<span class="unread_highlight_U1LE5CWTF unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LE5CWTF" class="presence member_presence_U1LE5CWTF active" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					amnivore21
+					 (you)
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with amnivore21" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LD5S9EG member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LE5B6DV"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/bretjohnson13" target="new_1467128351475" class="im_name nuc color_U1LD5S9EG color_5b89d5" data-member-id="U1LD5S9EG" aria-label="">
+			<span class="unread_highlight_U1LD5S9EG unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LD5S9EG" class="presence active member_presence_U1LD5S9EG" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					bretjohnson13
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with bretjohnson13" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LDH3Y2W member away  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LCQ204T"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/ddavis" target="new_1467128351475" class="im_name nuc color_U1LDH3Y2W color_4bbe2e" data-member-id="U1LDH3Y2W" aria-label="">
+			<span class="unread_highlight_U1LDH3Y2W unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LDH3Y2W" class="presence away member_presence_U1LDH3Y2W" title="away"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					ddavis
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with ddavis" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LEEG3UJ member away  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LDX0AGN"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/gonzero" target="new_1467128351475" class="im_name nuc color_U1LEEG3UJ color_df3dc0" data-member-id="U1LEEG3UJ" aria-label="">
+			<span class="unread_highlight_U1LEEG3UJ unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LEEG3UJ" class="presence away member_presence_U1LEEG3UJ" title="away"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					gonzero
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with gonzero" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LD2QMUN member away  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LCQ206P"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/jaikins" target="new_1467128351475" class="im_name nuc color_U1LD2QMUN color_e0a729" data-member-id="U1LD2QMUN" aria-label="">
+			<span class="unread_highlight_U1LD2QMUN unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LD2QMUN" class="presence away member_presence_U1LD2QMUN" title="away"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					jaikins
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with jaikins" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LBTNSAF member away  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LE5B6ET"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/jhandshoe" target="new_1467128351475" class="im_name nuc color_U1LBTNSAF color_e96699" data-member-id="U1LBTNSAF" aria-label="">
+			<span class="unread_highlight_U1LBTNSAF unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LBTNSAF" class="presence away member_presence_U1LBTNSAF" title="away"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					jhandshoe
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with jhandshoe" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LCYL6RL member away  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LEFMG66"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/jordan" target="new_1467128351475" class="im_name nuc color_U1LCYL6RL color_e7392d" data-member-id="U1LCYL6RL" aria-label="">
+			<span class="unread_highlight_U1LCYL6RL unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LCYL6RL" class="presence away member_presence_U1LCYL6RL" title="away"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					jordan
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with jordan" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LDJ6UBU member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LDUM484"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/nicklawson" target="new_1467128351475" class="im_name nuc color_U1LDJ6UBU color_674b1b" data-member-id="U1LDJ6UBU" aria-label="">
+			<span class="unread_highlight_U1LDJ6UBU unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LDJ6UBU" class="presence active member_presence_U1LDJ6UBU" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					nicklawson
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with nicklawson" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LD7DRS9 member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LDUM47N"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/patrick_haimbaugh" target="new_1467128351475" class="im_name nuc color_U1LD7DRS9 color_3c989f" data-member-id="U1LD7DRS9" aria-label="">
+			<span class="unread_highlight_U1LD7DRS9 unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LD7DRS9" class="presence active member_presence_U1LD7DRS9" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					patrick_haimbaugh
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with patrick_haimbaugh" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LD0NQD6 member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LE5CXFX"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/pauloconnor" target="new_1467128351475" class="im_name nuc color_U1LD0NQD6 color_9f69e7" data-member-id="U1LD0NQD6" aria-label="">
+			<span class="unread_highlight_U1LD0NQD6 unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LD0NQD6" class="presence active member_presence_U1LD0NQD6" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					pauloconnor
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with pauloconnor" data-qa="im_close"></button>
+	</li>	
+	<li class="member_U1LDUDV2S member  cursor_pointer">
+		<div class="hotness_icon hidden" id="hotness_D1LDUM4AG"><span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:57.5% 65%;background-size:4100%"></span></div>
+		
+		
+		
+		<a href="https://efasummertracks.slack.com/team/tararee" target="new_1467128351475" class="im_name nuc color_U1LDUDV2S color_99a949" data-member-id="U1LDUDV2S" aria-label="">
+			<span class="unread_highlight_U1LDUDV2S unread_highlights hidden">0</span>
+			<span class="typing_indicator"></span>
+			<span class="overflow_ellipsis">
+					<span data-member-presence="U1LDUDV2S" class="presence active member_presence_U1LDUDV2S" title="active"><i aria-hidden="true" class="ts_icon ts_icon_presence presence_icon"></i></span>
+					tararee
+					
+			</span>
+		</a>
+			<button class="ts_icon ts_icon_times_circle im_close btn_unstyle" aria-label="Close Direct Message with tararee" data-qa="im_close"></button>
+	</li>	
+</ul>
+							<div class="clear_both"></div>
+
+							<button id="channel_list_invites_link" class="channel_list_add_link btn_unstyle hidden dim" data-action="admin_invites_modal" aria-label="Invite people" data-clog-click="true" data-clog-event="INVITEMODAL_ACTION" data-clog-params="action=open_modal,trigger=click_channel_list_invite_btn"><i class="ts_icon ts_icon_plus_small float_left"></i> Invite people</button>
+						</div>
+
+						<div id="everything" role="navigation" class="section_holder hidden" aria-label="Everything else">
+							<h2 id="everything_section_header" class="overflow_ellipsis">
+								<ts-icon class="ts_icon_channel_list ts_icon_inherit" aria-hidden="true"></ts-icon>
+								<span id="everything_else" class="hidden">Everything Else</span>
+								<span id="everything_at_top" class="hidden">Everything</span>
+							</h2>
+							<ul id="everything-list"></ul>
+						</div>
+
+					</div>
+
+					<a id="channel_scroll_up" class="hidden" onclick="TS.client.ui.scrollSoTopUnseenChannelIsInView(this); return false"><span>more unreads</span> <i class="ts_icon ts_icon_arrow_up small_left_margin"></i></a>
+					<a id="channel_scroll_down" class="hidden" onclick="TS.client.ui.scrollSoBottomUnseenChannelIsInView(this); return false"><span>more unreads</span> <i class="ts_icon ts_icon_arrow_down small_left_margin"></i></a>
+
+										<div id="quick_switcher_btn"><i class="ts_icon ts_icon_filter"></i><span id="quick_switcher_label" class="quick_switcher_label_windows_alignment">Quick Switcher</span><span id="quick_switcher_shortcut">Ctrl+K</span></div>
+				</div>
+
+								<div id="messages_container" role="main" class="">
+
+					
+					<div id="archive_msgs_scroller_div" class="hidden" style="height: 806px;">
+						<div id="archives_top_div" class="msgs_holder mini italic hidden">~FIN~</div>
+						<div id="archives_msgs_div" class="msgs_holder"></div>
+						<div id="archives_bottom_div" class="msgs_holder hidden mini italic"></div>
+					</div>
+
+					<div id="msgs_scroller_div" tabindex="1" style="height: 762px;" class="">
+
+						<div id="end_div" class="relative mini help" style="height: 215px;">
+							<div id="end_display_onboarding" class="hidden onboarding">
+								<div id="onboarding_header">
+									<div id="onboarding_fade_out_mask" class="hidden"></div>
+									<span id="onboarding_welcome_text" class="lato_light">Welcome!</span>
+									<span id="onboarding_welcome_message" class="align_center lato_bold">Slack is a messaging app for teams.</span>
+									<div id="in_skip_messaging" class="align_center hidden">Got the hang of Slack already? <a class="skip_tutorial_link">Skip the tutorial.</a></div>
+									<div id="unskip_messaging" class="align_center hidden">I changed my mind. <a class="take_tutorial_link">Take the tutorial.</a></div>
+								</div>
+								<div id="onboarding_footer">
+									<div id="explore_btn_container" class="align_center">
+										<a class="btn">Explore Slack</a>
+									</div>
+									<div id="pre_skip_messaging" class="align_center">Not your first Slack team? <a class="skip_tutorial_link">Skip the tutorial.</a></div>
+								</div>
+							</div>
+							<div id="end_display_div" class="relative">
+								<div id="end_display_padder" style="height: 16px;"></div>
+								<div id="end_display_meta" class="">
+									<div id="channel_meta" class="">
+										<h1 class="small_bottom_margin channel_meta_name"><a href="https://efasummertracks.slack.com/archives/codesnippets" target="/archives/codesnippets" class="channel_link" data-channel-id="C1LLA50P8"><span class="normal">#</span>codesnippets</a></h1>
+										<p id="channel_meta_random_info" class="hidden"> A place for non-work-related flimflam, faffing, hodge-podge or jibber-jabber you'd prefer to keep out of more focused work-related channels.</p>
+										<p id="channel_meta_others_info" class="small_bottom_margin">
+																						<span class="not_limited_copy">This is the very beginning of the </span>
+											<span class="is_limited_copy hidden">This is the </span>
+											<span class="channel_meta_name"><a href="https://efasummertracks.slack.com/archives/codesnippets" target="/archives/codesnippets" class="channel_link" data-channel-id="C1LLA50P8"><span class="normal">#</span>codesnippets</a></span> channel, which
+											<span id="channel_creator_name" class="">was created by <a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a></span>
+											<span id="channel_create_date">yesterday</span>.
+											<span id="channel_meta_purpose_container">
+												Purpose: <span id="channel_meta_purpose" class="italic no_jumbomoji">Sharing code.</span> (<a class="end_action_purpose">edit</a>)											</span>
+										</p>
+										<ul class="end_display_actions">
+											<li class="hidden"><a class="end_action_purpose"><i class="ts_icon ts_icon_pencil ts_icon_inherit"></i> Set a purpose</a></li>											<li><a class="end_action_integration" href="https://efasummertracks.slack.com/apps/new?channel=C1LLA50P8" target="new"><i class="ts_icon ts_icon_plus ts_icon_inherit"></i>
+												Add an app or custom integration
+											</a></li>
+											<li><a class="end_action_invite"><i class="ts_icon ts_icon_user ts_icon_inherit"></i> Invite others to this channel</a></li>
+											<li class="hidden"><span class="end_action_slack_invite havana_blue" data-clog-click="true" data-clog-event="INVITEMODAL_ACTION" data-clog-params="action=open_modal,trigger=click_general_channel_invite_btn"></span></li>
+										</ul>
+									</div>
+									<div id="group_meta" class="hidden">
+										<h1 class="small_bottom_margin group_meta_name"></h1>
+										<p class="small_bottom_margin">
+																						<span class="not_limited_copy">This is the very beginning of the </span>
+											<span class="is_limited_copy hidden">This is the </span>
+											<span class="group_meta_name bold"></span> private channel, which
+											<span id="group_creator_name"></span>
+											<span id="group_create_date"></span>.
+											<span id="group_meta_purpose_container">
+												Purpose: <span id="group_meta_purpose" class="no_jumbomoji italic"></span> (<a class="end_action_purpose">edit</a>)											</span>
+											<span id="group_meta_archived_parent">
+												It was created from the now archived private channel <a id="group_meta_archived_parent_link" href="https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/" target="_blank"></a>.
+											</span>
+																						<span class="show_when_ce_enabled hidden">While messages here are generally private to the people within this private channel, messages sent on or after <span class="js_compliance_export_start"></span> may be accessible to your Team Owners via <a href="https://slack.zendesk.com/hc/en-us/articles/203950296-FAQs-about-Slack-s-policy-update#complianceexport">Compliance Exports</a>. See <a href="https://efasummertracks.slack.com/account/team">Your Team Settings</a> to learn more.</span>
+										</p>
+										<ul class="end_display_actions">
+											<li class="hidden"><a class="end_action_purpose"><i class="ts_icon ts_icon_pencil ts_icon_inherit"></i> Set a purpose</a></li>											<li><a class="end_action_integration" href="https://efasummertracks.slack.com/apps/new?channel=C1LLA50P8" target="new"><i class="ts_icon ts_icon_plus ts_icon_inherit"></i>
+												Add an app or custom integration
+											</a></li>
+											<li><a class="end_action_invite"><i class="ts_icon ts_icon_user ts_icon_inherit"></i> Invite others to this private channel</a></li>
+										</ul>
+									</div>
+									<div id="slackbot_meta" class="hidden">
+										<h1>Hi, Slackbot here!</h1>
+										<img src="./codesnippet_files/service_48.png" alt="Slackbot" class="float_left small_left_margin" style="margin-top: 0.25rem;">
+																															<p class="icon_offset">You can ask me simple questions about how Slack works, or just type a few keywords. For example: <strong>Can I edit a message I've posted?</strong> Or simply: <strong>edit message</strong>.</p>
+											<div class="clear_both"></div>
+											<p class="icon_offset">I'm only a bot, but I'll do my best to answer! If I don't understand, I'll search the <a href="https://get.slack.help/hc/en-us">Help Center</a>.</p>
+
+											
+																			</div>
+									<div id="im_meta" class="hidden">
+										This is Direct Message display
+									</div>
+
+									<div class="is_limited_div is_limited_copy hidden mini">
+										<i class="ts_icon ts_icon_comment_o "></i> Your team has more than 10,000 messages in its archive, so although there are older messages than are shown below, you can't see them. <a href="https://efasummertracks.slack.com/pricing" target="_blank" class="bold">Find out more about upgrading your team.</a>
+									</div>
+								</div>
+								<div id="end_display_status" class="hidden" aria-live="polite" aria-atomic="true">Retrieving history...</div>
+							</div>
+						</div>
+						<div id="msgs_div" class="msgs_holder"><div class="day_container"><div class="day_divider" id="day_divider_1467047333_000002" data-date="June 27th, 2016" data-ts="1467047333.000002"><i class="copy_only"><br>----- </i><div class="day_divider_label" aria-label="Yesterday">Yesterday</div><i class="copy_only"> June 27th, 2016 -----</i></div>
+<div class="day_msgs" data-date="June 27th, 2016" data-ts="1467047333.000002"><ts-message id="msg_1467047333_000002" data-ts="1467047333.000002" data-model-ob-id="C1LLA50P8" data-member-id="U1LD0NQD6" class="dirty_hover_container message feature_fix_files  joined automated      first       ">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000002">
+		</div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class=" member_preview_link member_image thumb_36" data-member-id="U1LD0NQD6" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/820ba38710adbb990eaddcbe76e20b60.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0005-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000002" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467047333.000002" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000002" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467047333.000002" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body">joined #codesnippets</span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467047333_000002-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467047333_000002_label" class="message_aria_label hidden">
+			<strong>pauloconnor</strong>.
+			joined #codesnippets.
+			 replies
+			one oh-eight PM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+<ts-message id="msg_1467047333_000003" data-ts="1467047333.000003" data-model-ob-id="C1LLA50P8" data-member-id="U1LD0NQD6" class="dirty_hover_container message feature_fix_files  purpose automated      first       ">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000003">
+		</div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class=" member_preview_link member_image thumb_36" data-member-id="U1LD0NQD6" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/820ba38710adbb990eaddcbe76e20b60.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0005-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000003" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467047333.000003" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047333000003" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467047333.000003" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body">set the channel purpose: <span class="purpose no_jumbomoji">Sharing code.</span></span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467047333_000003-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467047333_000003_label" class="message_aria_label hidden">
+			<strong>pauloconnor</strong>.
+			set the channel purpose: <span class="purpose no_jumbomoji">Sharing code.</span>.
+			 replies
+			one oh-eight PM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+<ts-message id="msg_1467047338_000004" data-ts="1467047338.000004" data-model-ob-id="C1LLA50P8" data-member-id="U1LD5S9EG" class="message feature_fix_files  joined automated      first">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467047338000004"><a data-action="reaction" class="ts_icon ts_icon_small_reaction ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Add reaction …"></a><a data-action="share_message" data-permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467047338000004" class="ts_icon ts_icon_share_action ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Share message …"></a><a data-action="actions_menu" class="ts_icon ts_icon_small_ellipsis ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Show message actions"></a></div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/bretjohnson13" target="/team/bretjohnson13" class=" member_preview_link member_image thumb_36" data-member-id="U1LD5S9EG" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/1c9eed593d9e263221101b2f115c6ae9.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0008-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047338000004" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467047338.000004" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/bretjohnson13" target="/team/bretjohnson13" class="message_sender member member_preview_link color_U1LD5S9EG color_5b89d5 " data-member-id="U1LD5S9EG">bretjohnson13</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467047338000004" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>1:08 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;1:08&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467047338.000004" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body">joined #codesnippets. Also, <a href="https://efasummertracks.slack.com/team/jhandshoe" target="/team/jhandshoe" data-member-name="jhandshoe" class="internal_member_link">@jhandshoe</a> joined, <a href="https://efasummertracks.slack.com/team/mazman1150" target="/team/mazman1150" data-member-name="mazman1150" class="internal_member_link">@mazman1150</a> joined, <a href="https://efasummertracks.slack.com/team/jrlawyer" target="/team/jrlawyer" data-member-name="jrlawyer" class="internal_member_link">@jrlawyer</a> joined, <a href="https://efasummertracks.slack.com/team/angreid" target="/team/angreid" data-member-name="angreid" class="internal_member_link">@angreid</a> joined, <a href="https://efasummertracks.slack.com/team/ryan.ohern" target="/team/ryan.ohern" data-member-name="ryan.ohern" class="internal_member_link">@ryan.ohern</a> joined, <a href="https://efasummertracks.slack.com/team/atadsp" target="/team/atadsp" data-member-name="atadsp" class="internal_member_link">@atadsp</a> joined, <a href="https://efasummertracks.slack.com/team/mitchreed12" target="/team/mitchreed12" data-member-name="mitchreed12" class="internal_member_link">@mitchreed12</a> joined, <a href="https://efasummertracks.slack.com/team/gonzero" target="/team/gonzero" data-member-name="gonzero" class="internal_member_link">@gonzero</a> joined along with <a onclick="TS.client.channel_page.showMemberSectionAndHighlight();">some others</a>.</span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467047338_000004-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467047338_000004_label" class="message_aria_label hidden">
+			<strong>bretjohnson13</strong>.
+			.
+			 replies
+			one oh-eight PM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+<ts-message id="msg_1467055713_000027" data-ts="1467055713.000027" data-model-ob-id="C1LLA50P8" data-member-id="U1LBTNSAF" class="message feature_fix_files        first">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467055713000027"><a data-action="reaction" class="ts_icon ts_icon_small_reaction ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Add reaction …"></a><a data-action="share_message" data-permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467055713000027" class="ts_icon ts_icon_share_action ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Share message …"></a><a data-action="actions_menu" class="ts_icon ts_icon_small_ellipsis ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Show message actions"></a></div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/jhandshoe" target="/team/jhandshoe" class=" member_preview_link member_image thumb_36" data-member-id="U1LBTNSAF" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/4feb2836c1f491823ee421eaf82b9a57.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0022-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467055713000027" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>3:28 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;3:28&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467055713.000027" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/jhandshoe" target="/team/jhandshoe" class="message_sender member member_preview_link color_U1LBTNSAF color_e96699 " data-member-id="U1LBTNSAF">jhandshoe</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467055713000027" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>3:28 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;3:28&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467055713.000027" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body"><a href="http://codepen.io/jhandshoe/pen/yJMYmm" data-referer-safe="1" onclick="this.href=&quot;https://slack-redir.net/link?url=http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;" onmouseover="this.href=TS.utility.referer_safe_url_map[&quot;http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;]" data-referer-original-href="http://codepen.io/jhandshoe/pen/yJMYmm" rel="noreferrer" target="_blank">http://codepen.io/jhandshoe/pen/yJMYmm</a>	
+	<div class="attachment_group has_border has_link">
+		<div data-real-src="http://s3-us-west-2.amazonaws.com/m.cdpn.io/screenshot-coming-soon-large.png" class="inline_attachment standalone" data-attachment-id="1">
+
+		<div class="msg_inline_attachment_column column_border">
+		</div>
+
+	
+
+	<div class="msg_inline_attachment_column column_content">
+
+			<div class="msg_inline_attachment_row attachment_flush_text attachment_source">
+
+					<span class="attachment_source_icon"><img class="attachment_source_icon" src="./codesnippet_files/saved_resource" alt=""></span>
+
+					<span class="attachment_source_name">CodePen</span>
+
+
+				
+			</div>
+
+			<div class="msg_inline_attachment_row attachment_flush_text">
+					<div class="attachment_title">
+							<a href="http://codepen.io/jhandshoe/pen/yJMYmm" data-referer-safe="1" onclick="this.href=&quot;https://slack-redir.net/link?url=http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;" onmouseover="this.href=TS.utility.referer_safe_url_map[&quot;http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;]" data-referer-original-href="http://codepen.io/jhandshoe/pen/yJMYmm" rel="noreferrer" target="_blank">
+						yJMYmm</a>
+						
+					</div>
+
+							...
+						<span class="media_caret"><span class="inline_img_bytes "> (12KB)</span><i data-real-src="http://s3-us-west-2.amazonaws.com/m.cdpn.io/screenshot-coming-soon-large.png" class="msg_inline_img_collapser ts_icon ts_icon_caret_down "></i><i data-real-src="http://s3-us-west-2.amazonaws.com/m.cdpn.io/screenshot-coming-soon-large.png" class="msg_inline_img_expander ts_icon ts_icon_caret_right hidden"></i></span>
+			</div>
+
+
+
+			<div class="msg_inline_attachment_row attachment_media">
+				
+				<div data-real-src="http://s3-us-west-2.amazonaws.com/m.cdpn.io/screenshot-coming-soon-large.png" class="clear_both msg_inline_img_holder msg_inline_holder msg_inline_holder_rounded file_container_fixed_dimensions"><a href="http://codepen.io/jhandshoe/pen/yJMYmm" data-referer-safe="1" onclick="this.href=&quot;https://slack-redir.net/link?url=http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;" onmouseover="this.href=TS.utility.referer_safe_url_map[&quot;http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;]" data-referer-original-href="http://codepen.io/jhandshoe/pen/yJMYmm" rel="noreferrer" target="_blank" title="" class="file_viewer_external_link" data-src="http://s3-us-west-2.amazonaws.com/m.cdpn.io/screenshot-coming-soon-large.png" data-link-url="http://codepen.io/jhandshoe/pen/yJMYmm" data-width="445" data-height="250"><div class="msg_inline_img_container"><div class="file_preview_preserve_aspect_ratio" style="width: 400px; height: 224px;"><figure class="msg_inline_img msg_inline_child" data-real-background-image="https://slack-imgs.com/?c=1&amp;o1=wi400.he224&amp;url=http%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fm.cdpn.io%2Fscreenshot-coming-soon-large.png" style="background-image: url(&quot;https://slack-imgs.com/?c=1&amp;o1=wi400.he224&amp;url=http%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fm.cdpn.io%2Fscreenshot-coming-soon-large.png&quot;);"><img data-real-src="https://slack-imgs.com/?c=1&amp;o1=wi400.he224&amp;url=http%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fm.cdpn.io%2Fscreenshot-coming-soon-large.png" src="./codesnippet_files/saved_resource(1)"></figure></div></div></a></div></div>
+
+
+	</div>
+
+	
+
+
+	
+
+</div>
+
+
+	</div>
+	
+</span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467055713_000027-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467055713_000027_label" class="message_aria_label hidden">
+			<strong>jhandshoe</strong>.
+			<a href="http://codepen.io/jhandshoe/pen/yJMYmm" data-referer-safe="1" onclick="this.href=&quot;https://slack-redir.net/link?url=http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;" onmouseover="this.href=TS.utility.referer_safe_url_map[&quot;http%3A%2F%2Fcodepen.io%2Fjhandshoe%2Fpen%2FyJMYmm&quot;]" data-referer-original-href="http://codepen.io/jhandshoe/pen/yJMYmm" rel="noreferrer" target="_blank">http://codepen.io/jhandshoe/pen/yJMYmm</a>.
+			 replies
+			three twenty-eight PM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+<ts-message id="msg_1467057824_000029" data-ts="1467057824.000029" data-model-ob-id="C1LLA50P8" data-member-id="U1LL3GZKJ" class="message feature_fix_files  joined automated      first">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467057824000029"><a data-action="reaction" class="ts_icon ts_icon_small_reaction ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Add reaction …"></a><a data-action="share_message" data-permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467057824000029" class="ts_icon ts_icon_share_action ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Share message …"></a><a data-action="actions_menu" class="ts_icon ts_icon_small_ellipsis ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Show message actions"></a></div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/tim" target="/team/tim" class=" member_preview_link member_image thumb_36" data-member-id="U1LL3GZKJ" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/8e9ed685fcc3adb95492e80fb578af1b.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F272a%2Fimg%2Favatars%2Fava_0026-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467057824000029" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>4:03 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;4:03&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467057824.000029" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/tim" target="/team/tim" class="message_sender member member_preview_link color_U1LL3GZKJ color_43761b " data-member-id="U1LL3GZKJ">tim</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467057824000029" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>4:03 PM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Yesterday&nbsp;at&nbsp;4:03&nbsp;PM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467057824.000029" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body">joined #codesnippets</span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467057824_000029-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467057824_000029_label" class="message_aria_label hidden">
+			<strong>tim</strong>.
+			joined #codesnippets.
+			 replies
+			four oh-three PM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+</div></div><div class="day_container"><div class="day_divider" id="day_divider_1467128956_000002" data-date="June 28th, 2016" data-ts="1467128956.000002"><i class="copy_only"><br>----- </i><div class="day_divider_label" aria-label="Today">Today</div><i class="copy_only"> June 28th, 2016 -----</i></div>
+<div class="day_msgs" data-date="June 28th, 2016" data-ts="1467128956.000002"><ts-message id="msg_1467128956_000002" data-ts="1467128956.000002" data-model-ob-id="C1LLA50P8" data-member-id="U1LD0NQD6" class="message feature_fix_files        first    file_reference file_share">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html"><a data-action="reaction" class="ts_icon ts_icon_small_reaction ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Add reaction …"></a><a data-action="share_file" data-permalink="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" class="ts_icon ts_icon_share_action ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Share file …"></a><a data-action="actions_menu" class="ts_icon ts_icon_small_ellipsis ts_tip ts_tip_top ts_tip_float ts_tip_delay_60" title="Show message actions"></a></div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class=" member_preview_link member_image thumb_36" data-member-id="U1LD0NQD6" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/820ba38710adbb990eaddcbe76e20b60.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0005-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467128956000002" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>11:49 AM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Today&nbsp;at&nbsp;11:49&nbsp;AM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-file-id="F1M170FB8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_file ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this file">Star this file</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467128956000002" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>11:49 AM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Today&nbsp;at&nbsp;11:49&nbsp;AM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-file-id="F1M170FB8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_file ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this file">Star this file</span></button></span>
+		
+
+				<span data-file-id="F1M170FB8" class="meta message_body  msg_inline_file_preview_toggler expanded">
+					<a href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" data-file-id="F1M170FB8">
+						
+						
+						
+
+						added and commented on
+
+							an
+
+						HTML snippet<span class="msg_inline_file_title_hider">:
+							<span class="file_preview_link no_jumbomoji file_force_flexpane bold msg_inline_file_preview_title">Untitled</span>
+						</span>
+
+							<ts-icon class="msg_inline_media_toggler"></ts-icon>
+					</a>
+				</span>
+
+
+						<div data-file-id="F1M170FB8" class="file_container snippet_container
+				inline_collapsed
+">
+
+	<div class="file_body snippet_body">
+			<div class="CodeMirror cm-s-default CodeMirrorServer">
+<div class="CodeMirror-code">
+<div><pre><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h1</span><span class="cm-tag cm-bracket">&gt;</span>CSS Notes<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h1</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">class</span>=<span class="cm-string">"css-basics"</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h3</span><span class="cm-tag cm-bracket">&gt;</span>Purpose of CSS<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h3</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">ul</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To give the outside of the site a unique look and feel.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To alter colors, fonts, backgrounds, etc.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To implement some effects and animations, although it's not as powerful as jQuery.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">ul</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>​</pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">class</span>=<span class="cm-string">"css-statements"</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h2</span><span class="cm-tag cm-bracket">&gt;</span>CSS Statements<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h2</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span>Four main components include the following: <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">ol</span><span class="cm-tag cm-bracket">&gt;</span> </pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Declaration:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>the statement as a whole with curly braces.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span> </pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Selector:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> the name of the part you want to style.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Property:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> properties to edit(e.g., width, height, background, etc.)<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Value:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> numbers, colors, urls - values that we assing. <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">ol</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span>Here's a good photo to illustrate these items:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"../img/cssbasics.png"</span> <span class="cm-attribute">id</span>=<span class="cm-string">"css-photo"</span> <span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+</div>
+</div>
+
+	</div>
+
+			<div class="preview_actions">
+				<a class="file_preview_action preview_show_less_header btn btn_outline btn_icon ts_icon ts_icon_collapse_vertical ts_tip ts_tip_top ts_tip_float ts_tip_delay_300" title="Collapse"></a>
+			
+				
+			
+				
+			
+							<a class="file_preview_action file_new_window_link btn btn_outline btn_icon ts_icon ts_icon_external_link ts_tip ts_tip_top ts_tip_float ts_tip_delay_300" data-file-id="F1M170FB8" href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" title="Open in new window"></a>
+				<a class="file_preview_action file_actions btn btn_outline btn_icon ts_icon ts_icon_ellipsis ts_tip ts_tip_top ts_tip_float ts_tip_delay_300" title="More actions" data-file-id="F1M170FB8" data-include-open-flexpane="true" data-exclude-comment="true" data-exclude-print="true" data-include-view-public-link="true"></a>
+				<a href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" data-file-id="F1M170FB8" class="file_preview_action btn btn_outline file_preview_link file_comment_link file_force_flexpane">
+							<span>1 Comment</span>
+				</a>
+			</div>
+			<div class="preview_show preview_show_more">
+				<div class="preview_show_center">
+					<button class="preview_show_btn" data-file-id="F1M170FB8">
+						<i class="ts_icon ts_icon_plus_small"></i>Click to expand inline
+						<span class="line_count">23 lines</span>
+					</button>
+				</div>
+			</div>
+			<div class="preview_show preview_show_less">
+				<button class="preview_show_btn">Collapse<i class="ts_icon ts_icon_arrow_up_medium"></i></button>
+			</div>
+
+</div>
+
+ 
+					<div class="rxn_panel rxns_key_file-F1M170FB8-"></div>
+
+
+					<div class="initial_comment">
+						<div class="comment no_bottom_margin">
+							Some css playground stuff
+						</div>
+						<div class="rxn_panel rxns_key_file_comment-Fc1M1RQZ42-"></div>
+					</div>
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467128956_000002_label" class="message_aria_label hidden">
+			<strong>pauloconnor</strong>.
+			<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" data-member-name="pauloconnor" class="internal_member_link">@pauloconnor</a> uploaded a file: <a href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="_blank" class="file_preview_link no_jumbomoji" data-file-id="F1M170FB8">Untitled</a> and commented: Some css playground stuff.
+			 replies
+			eleven forty-nine AM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+<ts-message id="msg_1467128974_000003" data-ts="1467128974.000003" data-model-ob-id="C1LLA50P8" data-member-id="U1LLC4N77" class="dirty_hover_container message feature_fix_files  joined automated      first       ">
+		<div class="action_hover_container " data-show_rxn_action="true" data-show_reply_action="" data-show_jump_action="" data-show_comment_action="" data-abs_permalink="https://efasummertracks.slack.com/archives/codesnippets/p1467128974000003">
+		</div>
+
+		
+
+		<div class="message_gutter">
+			<div class="message_icon">
+							<a href="https://efasummertracks.slack.com/team/stephenbanks93" target="/team/stephenbanks93" class=" member_preview_link member_image thumb_36" data-member-id="U1LLC4N77" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/0fdeead1ba0417d44fc6edf840e0fd63.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0025-48.png&#39;)" aria-hidden="true"></a>
+				
+			</div>
+			<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467128974000003" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>11:49 AM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Today&nbsp;at&nbsp;11:49&nbsp;AM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			<span class="message_star_holder"><button data-msg-id="1467128974.000003" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		</div>
+
+	<div class="message_content ">
+			<a href="https://efasummertracks.slack.com/team/stephenbanks93" target="/team/stephenbanks93" class="message_sender member member_preview_link color_U1LLC4N77 color_84b22f " data-member-id="U1LLC4N77">stephenbanks93</a>
+		<a href="https://efasummertracks.slack.com/archives/codesnippets/p1467128974000003" target="new_1467128351475" class="timestamp ts_tip ts_tip_top ts_tip_float ts_tip_hidden ts_tip_multiline ts_tip_delay_300"><i class="copy_only">[</i>11:49 AM<i class="copy_only">]</i><span class="ts_tip_tip"><span class="ts_tip_multiline_inner">Today&nbsp;at&nbsp;11:49&nbsp;AM<br><span class="subtle_silver">Open in archives</span></span></span></a>
+			
+		<span class="message_star_holder"><button data-msg-id="1467128974.000003" data-c-id="C1LLA50P8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_message ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this message">Star this message</span></button></span>
+		
+
+			<span class="message_body">joined #codesnippets. Also, <a href="https://efasummertracks.slack.com/team/ddavis" target="/team/ddavis" data-member-name="ddavis" class="internal_member_link">@ddavis</a> joined, <a href="https://efasummertracks.slack.com/team/aweiss1" target="/team/aweiss1" data-member-name="aweiss1" class="internal_member_link">@aweiss1</a> joined, <a href="https://efasummertracks.slack.com/team/jlorenzoni" target="/team/jlorenzoni" data-member-name="jlorenzoni" class="internal_member_link">@jlorenzoni</a> joined, <a href="https://efasummertracks.slack.com/team/amnivore21" target="/team/amnivore21" data-member-name="amnivore21" class="internal_member_link">@amnivore21</a> joined, <a href="https://efasummertracks.slack.com/team/bandgeek1324" target="/team/bandgeek1324" data-member-name="bandgeek1324" class="internal_member_link">@bandgeek1324</a> joined.</span>
+
+				
+
+
+
+					
+					<div class="rxn_panel rxns_key_message-1467128974_000003-C1LLA50P8"></div>
+
+
+
+
+		<i class="copy_only"><br></i>
+
+
+		<span id="msg_1467128974_000003_label" class="message_aria_label hidden">
+			<strong>stephenbanks93</strong>.
+			joined #codesnippets. Also, <a href="https://efasummertracks.slack.com/team/ddavis" target="/team/ddavis" data-member-name="ddavis" class="internal_member_link">@ddavis</a> joined, <a href="https://efasummertracks.slack.com/team/aweiss1" target="/team/aweiss1" data-member-name="aweiss1" class="internal_member_link">@aweiss1</a> joined, <a href="https://efasummertracks.slack.com/team/jlorenzoni" target="/team/jlorenzoni" data-member-name="jlorenzoni" class="internal_member_link">@jlorenzoni</a> joined, <a href="https://efasummertracks.slack.com/team/amnivore21" target="/team/amnivore21" data-member-name="amnivore21" class="internal_member_link">@amnivore21</a> joined, <a href="https://efasummertracks.slack.com/team/bandgeek1324" target="/team/bandgeek1324" data-member-name="bandgeek1324" class="internal_member_link">@bandgeek1324</a> joined..
+			 replies
+			eleven forty-nine AM.
+		</span>
+
+	</div>
+
+	
+
+</ts-message>
+</div></div></div>
+						<div id="msgs_overlay_div" class="hidden" style="opacity: 0;"></div>
+
+					</div>
+
+					<div id="messages_unread_status" class="messages_banner quiet no_pointer_events no_opacity flex_pane_showing">
+						<ts-icon class="new_msgs_arrow ts_icon_arrow_up hidden"></ts-icon>
+						<span class="actual new_msgs_jump_link" style="display: none;">Jump</span>
+						<span id="new_msg_info" class="overflow_ellipsis">1 new message since 11:41 AM</span>
+						<a class="clear_unread_messages ts_tip ts_tip_bottom ts_tip_right" onclick="TS.client.ui.forceMarkAllRead(TS.model.marked_reasons.clicked); return false;" data-original-title="" title="">
+							<span class="ts_tip_tip">Mark as read (esc)</span>
+							<span class="clear_unread_messages_text">Mark as read</span> <i class="ts_icon ts_icon_times_small float_right"></i>
+						</a>
+					</div>
+
+					<div id="file_progress" class="messages_banner hidden flex_pane_showing">
+						<div class="progress_bar">
+							<span class="progress_bar_progress_thin"></span>
+						</div>
+						<div id="progress_text"></div>
+					</div>
+
+					<div id="connection_div" class="messages_banner flex_pane_showing hidden" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+					<div id="archives_return" class="messages_banner messages_banner_bottom hidden flex_pane_showing" style="top: 737px;">
+						<span id="archives_info" class="overflow_ellipsis">Viewing archives from <span id="archives_return_date" class="">June 27th, 2016 - June 28th, 2016</span></span>
+						<a class="cancel_archives hidden">Jump to recent messages <i class="ts_icon ts_icon_arrow_down float_right"></i></a>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+		<div id="col_flex" style="top: 102px;">
+
+		<div id="flex_contents" role="complementary" class="tab_panels tab_container" style="opacity: 100;">
+
+		
+		
+			<div class="panel" id="stars_tab" style="height: 826px;">
+				<div class="heading">Starred Items <a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a></div>
+				<div id="stars_scroller" class="flex_content_scroller">
+					<div class="selectable_flex_pane_padder">
+						<div id="member_stars_list"></div>
+						<div id="member_stars_explanation" class="hidden help">
+							<p>You haven't starred any messages or files yet. Maybe now's the time to start? You can add a star to messages, files, snippets, posts, comments ... pretty much anything in Slack.</p>
+							<p>Starring makes things easier to find: they'll show up right here in this list.</p>
+						</div>
+												<div id="member_stars_more" class="flexpane_load_more">
+							<button id="member_stars_more_btn" class="btn btn_outline ladda-button" data-spinner-color="#000" data-style="expand-right"><span class="ladda-label">Load more...</span></button>
+						</div>
+											</div>
+				</div>
+			</div>
+
+			<div class="panel" id="mentions_tab" style="height: 826px;">
+				<div class="heading">
+					Mentions &amp; Reactions
+					<span id="mentions_spinner"></span>
+					<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+				</div>
+				<div id="mentions_options" class="subheading"></div>
+				<div id="mentions_scroller" class="flex_content_scroller">
+					<div class="selectable_flex_pane_padder">
+						<div id="member_mentions"></div>
+						<div id="member_mentions_explanation" class="hidden help">
+							<p>You don't have any mentions yet. When someone mentions you by name or uses one of your highlight words, that message will appear here.</p>
+						</div>
+						<div id="member_mentions_more" class="flexpane_load_more">
+							<button id="member_mentions_more_btn" class="btn btn_outline ladda-button" data-spinner-color="#000" data-style="expand-right"><span class="ladda-label">Load more...</span></button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="panel active" id="files_tab" style="height: 826px;">
+				<div id="file_list_container" class="hidden">
+					<div class="heading">
+						<a id="file_list_clear_filter" class="menu_icon hidden">
+							<i class="ts_icon ts_icon_times_circle"></i>
+						</a>
+						<a id="file_list_heading" class="menu_heading"><span class="heading_label">All File Types</span> <i class="ts_icon ts_icon_caret_down"></i></a>
+						<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+					</div>
+					<div class="toolbar clearfix">
+						<ul id="file_list_toggle" class="flexpane_tab_bar">
+							<li id="file_list_toggle_all" class="active"><a>Everyone</a></li>
+							<li id="file_list_toggle_user">
+								<i id="file_list_toggle_users" class="ts_icon ts_icon_caret_down"></i>
+								<a>Just You</a>
+							</li>
+						</ul>
+													<a id="file_list_button" class="secondary_file_button file_upload_btn">Add New File <i class="ts_icon ts_icon_caret_down"></i></a>
+												<a id="secondary_snippet_button" class="secondary_file_button float_right hidden" onclick="TS.ui.snippet_dialog.startCreate();">New Snippet <i class="ts_icon ts_icon_plus_circle ts_icon_inherit"></i></a>
+						<a id="secondary_post_button" class="secondary_file_button float_right hidden" href="https://efasummertracks.slack.com/files/create/post" target="new">New post <i class="ts_icon ts_icon_plus_circle ts_icon_inherit"></i></a>
+					</div>
+					<div id="file_list_scroller" class="flex_content_scroller" style="height: 919px;">
+												<div id="file_list" class="feature_fast_files_flexpane not_scrolling" data-list="all"><div class="list_items" style="position: relative; height: 480px;"></div></div>
+						<div id="file_list_block" class="help">
+							<a href="https://efasummertracks.slack.com/files" target="new" id="file_listing_bottom_button" class="bottom_margin btn full_width">See all files on a web page...</a>
+							<div class="subsection" data-filter="all">
+								<p>You can look for files using the Search Bar above, by name, keywords, or contents.</p>
+								<p>Filter your view by file type, such as images or PDFs, using the drop-down menu at the top of this page. You can also filter files posted by everyone, just you, or a specific team member.</p>
+
+																	<p>Drag and drop a new file into the message area to add to this conversation or <a href="https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/" class="file_upload_btn">add a new file</a>.</p>
+															</div>
+							<div class="subsection hidden" data-filter="posts">
+								<p>Posts are useful for sharing longer documents with your team: information that's longer than a chat message or that needs to be formatted. Posts have the same commenting and sharing functionality as other files.</p>
+								<p>If you'd like, you can <a href="https://efasummertracks.slack.com/files/create/post" target="new">create a new post</a>.</p>
+							</div>
+							<div class="subsection hidden" data-filter="spaces">
+								<p>Posts are useful for sharing longer documents with your team: information that's longer than a chat message or that needs to be formatted. Posts have the same commenting and sharing functionality as other files.</p>
+								<p>If you'd like, you can <a href="https://efasummertracks.slack.com/files/create/space" target="new">create a new post</a>.</p>
+							</div>
+							<div class="subsection hidden" data-filter="snippets">
+								<p>Snippets are useful for pasting code or large blocks of text into Slack. Snippets can be shared into channels so your teammates can add comments.</p>
+								<p>Like other files, all content in a snippet is indexed and searchable. Snippet content will appear in the Files tab of search results.</p>
+								<p>If you'd like, you can <a onclick="TS.ui.snippet_dialog.startCreate();">create a new Snippet</a>.</p>
+							</div>
+							<div class="subsection hidden" data-filter="images">
+								<p>All sorts of image files can be uploaded to Slack. When you share an image file, it can be previewed inline in chat.</p>
+								<p>If you'd like, you can <a onclick="TS.client.ui.files.$upload.trigger(&#39;click&#39;);">upload a new image</a>.</p>
+							</div>
+							<div class="subsection hidden" data-filter="pdfs">
+								<p>PDFs uploaded to Slack are indexed and searchable. PDF content will appear in the Files tab of search results.</p>
+								<p>If you'd like, you can <a onclick="TS.client.ui.files.$upload.trigger(&#39;click&#39;);">upload a new PDF document</a>.</p>
+							</div>
+							<div class="subsection hidden" data-filter="gdocs">
+								<p>Slack provides built-in support for Google Docs. Just paste in a link to a Google Doc and follow the prompts to set it up.</p>
+								<p>When you add a Google Doc, Slack will index it for search and keep it up to date automatically so any changes you make in Google Docs will be reflected here.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+									<div id="file_preview_container" class="">
+						<div class="heading">
+														<a onclick="return false;" id="back_from_file_preview"><i class="ts_icon ts_icon_chevron_medium_left back_icon"></i> Search Results</a>
+							<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+						</div>
+						<div id="file_preview_scroller" class="flex_content_scroller" style="height: 756px;">
+							<div id="file_preview_head_section">	<div id="file_title_container">
+			<div class="flexpane_file_title">
+
+		<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" data-member-id="U1LD0NQD6" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/820ba38710adbb990eaddcbe76e20b60.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0005-48.png&#39;)" class="member_preview_link member_image thumb_36  "></a>
+
+		<span class="color_U1LD0NQD6 color_9f69e7"><a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a></span>
+
+		<span class="title break_word">
+				<a href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="F1M170FB8" data-file-id="F1M170FB8" class="">Untitled</a>
+
+			<span class="no_wrap">
+				<button data-file-id="F1M170FB8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_file ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this file">Star this file</span></button>
+			</span>
+		</span>
+
+		<ul class="file_action_list no_bullets no_bottom_margin float_right">
+
+
+
+				<li class="file_action_item inline_block">
+							<a class="ts_tip ts_tip_bottom ts_tip_rightish file_new_window_link" href="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" target="https://efasummertracks.slack.com/files/pauloconnor/F1M170FB8/-.html" data-file-id="F1M170FB8">
+								<span class="ts_tip_btn ts_icon ts_icon_external_link"></span>
+								<span class="ts_tip_tip">Open in new window</span>
+							</a>
+					
+				</li>
+
+			<li class="file_action_item inline_block">
+				<a class="ts_tip ts_tip_bottom ts_tip_right file_actions" data-file-id="F1M170FB8" data-exclude-pin="true" data-exclude-comment="true" data-include-view-public-link="true">
+					<span class="ts_tip_btn ts_icon ts_icon_ellipsis_o"></span>
+					<span class="ts_tip_tip">More actions</span>
+				</a>
+			</li>
+		</ul>
+
+	</div>
+
+
+	</div>
+
+	<div id="file_edit_title_container" class="hidden">
+		<form action="https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/" id="file_edit_title_form" class="small_bottom_margin" method="post" onsubmit="TS.files.saveEditFileTitle(&#39;F1M170FB8&#39;); return false;">
+			<p class="no_bottom_margin"><input type="text" id="file_edit_title_input" class="small" name="file_edit_title_input"></p>
+			<p class="no_bottom_margin align_right">
+				<button type="button" class="btn btn_small btn_outline" onclick="TS.files.endEditFileTitle(); return false;">Cancel</button>
+				<button type="submit" class="btn btn_small">Save Changes</button>
+			</p>
+		</form>
+	</div>
+
+		<div data-file-id="F1M170FB8" class="file_container snippet_container     snippet_wrap">
+
+	<div class="file_body snippet_body">
+			<div class="CodeMirror cm-s-default CodeMirrorServer">
+<div class="CodeMirror-code">
+<div><pre><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h1</span><span class="cm-tag cm-bracket">&gt;</span>CSS Notes<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h1</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">class</span>=<span class="cm-string">"css-basics"</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h3</span><span class="cm-tag cm-bracket">&gt;</span>Purpose of CSS<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h3</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">ul</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To give the outside of the site a unique look and feel.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To alter colors, fonts, backgrounds, etc.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span>To implement some effects and animations, although it's not as powerful as jQuery.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">ul</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>​</pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">div</span> <span class="cm-attribute">class</span>=<span class="cm-string">"css-statements"</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">h2</span><span class="cm-tag cm-bracket">&gt;</span>CSS Statements<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">h2</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span>Four main components include the following: <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">ol</span><span class="cm-tag cm-bracket">&gt;</span> </pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Declaration:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>the statement as a whole with curly braces.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span> </pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Selector:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> the name of the part you want to style.<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Property:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> properties to edit(e.g., width, height, background, etc.)<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>					<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span><span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span>Value:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">b</span><span class="cm-tag cm-bracket">&gt;</span> numbers, colors, urls - values that we assing. <span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">li</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>				<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">ol</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>			<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span>Here's a good photo to illustrate these items:<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">p</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>		<span class="cm-tag cm-bracket">&lt;</span><span class="cm-tag">img</span> <span class="cm-attribute">src</span>=<span class="cm-string">"../img/cssbasics.png"</span> <span class="cm-attribute">id</span>=<span class="cm-string">"css-photo"</span> <span class="cm-tag cm-bracket">&gt;</span></pre></div>
+<div><pre>	<span class="cm-tag cm-bracket">&lt;/</span><span class="cm-tag">div</span><span class="cm-tag cm-bracket">&gt;</span></pre></div>
+</div>
+</div>
+
+	</div>
+
+
+</div>
+
+
+
+	<label class="checkbox normal mini" for="snippet_wrap">
+		<input type="checkbox" id="snippet_wrap"> wrap
+	</label>
+
+ 
+
+	<div class="clear_both"></div>
+
+	<p class="file_meta">
+
+		<span class="date">Today at 11:49 AM</span>
+		<span class="bullet">•</span>
+
+			<a href="https://files.slack.com/files-pri/T1LCWRAMU-F1M170FB8/download/-.html" target="https://files.slack.com/files-pri/T1LCWRAMU-F1M170FB8/download/-.html" title="Download this file" data-file-id="F1M170FB8" class="subtle_silver file_ssb_download_link">900b <span>HTML</span> snippet</a>
+			<span class="bullet">•</span>
+
+		<span class="file_share_public_label inline_block" data-file-id="F1M170FB8">
+			<span class="file_share_shared_label bold_share_labels">Shared <span class="file_share_label" data-file-id="F1M170FB8">in <span class="no_wrap"><a href="https://efasummertracks.slack.com/archives/codesnippets" target="/archives/codesnippets" class="channel_link" data-channel-id="C1LLA50P8">codesnippets</a>&nbsp;<a class="unshare_link ts_tip ts_tip_top ts_tip_float ts_tip_unshare_link" onclick="TS.files.promptForFileUnshare(&#39;F1M170FB8&#39;, &#39;C1LLA50P8&#39;)"><span class="ts_tip_tip">Unshare from #codesnippets</span><i class="ts_icon ts_icon_minus_circle_small"></i></a></span></span></span>
+			<span class="file_share_unshared_label hidden" data-file-id="F1M170FB8">
+				Team file
+			</span>
+		</span>
+
+		<span class="file_share_private_label inline_block hidden" data-file-id="F1M170FB8">
+			<i class="ts_icon ts_icon_eye ts_icon_inherit"></i>
+			Shared
+					snippet
+					<span class="file_share_label" data-file-id="F1M170FB8">in <span class="no_wrap"><a href="https://efasummertracks.slack.com/archives/codesnippets" target="/archives/codesnippets" class="channel_link" data-channel-id="C1LLA50P8">codesnippets</a>&nbsp;<a class="unshare_link ts_tip ts_tip_top ts_tip_float ts_tip_unshare_link" onclick="TS.files.promptForFileUnshare(&#39;F1M170FB8&#39;, &#39;C1LLA50P8&#39;)"><span class="ts_tip_tip">Unshare from #codesnippets</span><i class="ts_icon ts_icon_minus_circle_small"></i></a></span></span>
+		</span>
+
+
+	</p>
+
+	<div class="rxn_panel rxns_key_file-F1M170FB8-"></div>
+
+
+</div>
+							<div id="file_preview_comments_section">	<div class="file_comments_F1M170FB8 comments">
+		<div class="comment" data-timestamp="1467128955" data-comment-id="Fc1M1RQZ42">
+	<a name="Fc1M1RQZ42"></a>
+	<span class="no_print">	<a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class=" member_preview_link member_image thumb_36" data-member-id="U1LD0NQD6" data-thumb-size="36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/820ba38710adbb990eaddcbe76e20b60.jpg?s=48&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0005-48.png&#39;)" aria-hidden="true"></a>
+</span>
+	<p class="comment_meta">
+		<span class="no_print"><a href="https://efasummertracks.slack.com/team/pauloconnor" target="/team/pauloconnor" class="message_sender member member_preview_link color_U1LD0NQD6 color_9f69e7 " data-member-id="U1LD0NQD6">pauloconnor</a></span>
+		<span class="print_only_inline"><strong>pauloconnor</strong> • </span>
+		Today at 11:49 AM
+		<span class="no_print"><button data-comment-id="Fc1M1RQZ42" data-file-id="F1M170FB8" class="star ts_icon ts_icon_star_o ts_icon_inherit star_comment star_file_comment ts_tip ts_tip_top ts_tip_float ts_tip_hidden btn_unstyle"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this file comment">Star this file comment</span></button></span>
+			<a class="comment_actions" data-file-id="F1M170FB8" data-comment-id="Fc1M1RQZ42"><i class="comment_cog ts_icon ts_icon_cog ts_icon_inherit"></i></a>
+	</p>				
+	<div class="comment_body">Some css playground stuff</div>
+	<div class="rxn_panel rxns_key_file_comment-Fc1M1RQZ42-"></div>
+</div>
+
+	</div>
+</div>
+							<form action="https://efasummertracks.slack.com/messages/codesnippets/files/F1M170FB8/" id="file_comment_form" class="comment_form" method="post">
+			<a href="https://efasummertracks.slack.com/team/amnivore21" class="member_preview_link" data-member-id="U1LE5CWTF" target="new">
+			<span class="member_image thumb_36" style="background-image: url(&#39;https://secure.gravatar.com/avatar/6b5c47ca88c24dbf53526dc78ecce7d0.jpg?s=72&amp;d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0021-72.png&#39;)" data-thumb-size="36" data-member-id="U1LE5CWTF"></span>
+		</a>
+		<input type="hidden" name="addcomment" value="1">
+	<input type="hidden" name="crumb" value="s-1467128346-54a7ea9c07-☃">
+
+	<textarea id="file_comment" data-el-id-to-keep-in-view="file_comment_submit_btn" class="small comment_input small_bottom_margin autogrow-short" name="comment" wrap="virtual" autocorrect="off" autocomplete="off" spellcheck="true" style="overflow: hidden; height: 38px;"></textarea>
+	<span class="mini float_left cloud_silver file_comment_tip">shift+enter to add a new line</span>	<button id="file_comment_submit_btn" type="submit" class="btn  btn_small float_right  ladda-button" data-style="expand-right"><span class="ladda-label">Add Comment</span></button>
+</form>
+
+<form id="file_edit_comment_form" class="edit_comment_form hidden" method="post">
+		<textarea id="file_edit_comment" class="small comment_input small_bottom_margin" name="comment" wrap="virtual" autocorrect="off" autocomplete="off" spellcheck="true"></textarea><br>
+	<span class="mini float_left cloud_silver file_comment_tip">shift+enter to add a new line</span>	<input type="submit" class="save btn  btn_small float_right " value="Save">
+	<button class="cancel btn btn_small btn_outline float_right small_right_margin ">Cancel</button>
+</form>						</div>
+					</div>
+				
+			</div>
+			<div class="panel" id="team_tab" style="height: 826px;">
+		  		<div id="team_list_container">
+					<div class="heading">
+						Team Directory
+						<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+						<a id="team_list_admin_link" href="https://efasummertracks.slack.com/admin" class="ts_tip ts_tip_bottom float_right right_margin hidden"><span class="ts_tip_tip">Manage team<br>members</span><ts-icon class="ts_icon_cog_o"></ts-icon></a>
+					</div>
+					<div class="team_tabs_container clearfix no_bottom_border">
+						<div id="team_tabs"></div>
+					</div>
+					<div id="team_list_scroller" class="flex_content_scroller">
+						<div id="team_list_members_wrapper">
+							
+						</div>
+						<div id="team_block" class="help">
+
+							<p id="team_block_admin_invite_few" class="hidden">There aren't many people here: you should <a href="https://efasummertracks.slack.com/admin/invites" target="_blank">invite some</a>!</p>
+
+							<p id="team_block_admin_invite_many" class="hidden">Is everyone on your team already on Slack? If not, <a href="https://efasummertracks.slack.com/admin/invites" target="_blank">send them an invite!</a></p>
+
+							<p id="team_block_description" class="hidden">The team list is an easy way to find contact details, start direct message conversations and view individual team members' activity feeds.</p>
+
+							<p id="team_block_email_on" class="hidden">Anyone with an <span id="team_block_email_domains"></span> email address will be able to join automatically if you send them a link to <a href="https://efasummertracks.slack.com/">https://efasummertracks.slack.com</a>.</p>
+
+							<p id="team_block_admin_email_off" class="hidden">To make it easier, you can <a href="https://efasummertracks.slack.com/admin/settings#signup_mode" target="_blank">change your settings</a> to allow anyone with a work email address (at a domain of your choice) to sign up by themselves by visiting <strong>https://efasummertracks.slack.com</strong>.</p>
+
+							<div id="team_block_fill_prompt" class="">
+								<i class="ts_icon ts_icon_user callout" style="float: left; margin: 0 1rem 1rem 0;"></i>
+								<p>To make it easier for your colleagues, we suggest you <a href="https://efasummertracks.slack.com/account/profile" target="_blank">add some details to your profile</a> (such as your phone number, Skype name and your role on the team).</p>
+							</div>
+
+						</div>
+					</div>
+				</div>
+				<div id="member_preview_container" class="hidden">
+					<div class="heading">
+						<a onclick="return false;" id="back_from_member_preview"><i class="ts_icon ts_icon_chevron_medium_left back_icon"></i> Team Directory</a>
+						<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+					</div>
+					<div id="member_preview_scroller" class="flex_content_scroller"></div>
+				</div>
+				<div id="user_group_preview_container" class="hidden">
+					<div class="heading">
+						<a onclick="return false;" id="back_from_user_group_preview"><i class="ts_icon ts_icon_chevron_medium_left back_icon"></i> Team Directory</a>
+						<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+					</div>
+					<div id="user_group_preview_scroller"></div>
+				</div>
+		  	</div>
+			<div class="panel" id="search_tab" style="height: 826px;">
+				<div id="search_results_container" class="hidden">
+					<div class="heading">
+						<div id="search_heading" class="inline_block">Search Results</div>
+						<a class="close_flexpane small_left_margin" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+						<div class="search_sort_container very_small_right_margin">
+							<a id="search_sort_timestamp" class="search_segmented_control left active" onclick="TS.search.setSort(&#39;timestamp&#39;);">Recent</a><a id="search_sort_score" class="search_segmented_control right" onclick="TS.search.setSort(&#39;score&#39;);">Relevant</a>
+						</div>
+					</div>
+					<div id="search_tabs" class="lato">	<div id="search_filters" class="messages">
+		<a id="filter_messages" onclick="TS.search.setFilter(&#39;messages&#39;); return false;">Messages (2)</a>
+		<a id="filter_files" onclick="TS.search.setFilter(&#39;files&#39;); return false;">Files (1)</a>
+	</div>
+		
+</div>
+					<div id="search_options" class="subheading"><p>
+	<span id="search_filter_menu_label" class="filter_menu_label cursor_pointer display_flex align_items_baseline ">
+		<span class="search_filter_menu_target tiny_right_margin bold">Include:</span>
+		<span class="flex_one search_filter_menu_target tiny_left_margin search_filter_text">everything <i class="ts_icon ts_icon_chevron_down bold arrow_down tiny_left_margin"></i></span>
+	</span>
+</p></div>
+					<div id="search_results" class="flex_content_scroller" style="height: 687px;">
+						<div id="search_results_team"></div>
+												<div id="search_results_items"></div>
+						
+					</div>
+				</div>
+			</div>
+			<div class="panel" id="details_tab" style="height: 826px;">
+				<div class="heading">
+					<span id="details_tab_header" class="overflow_ellipsis">Channel Info</span>
+					<a class="close_flexpane" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+				</div>
+				<div id="channel_page_scroller" class="flex_content_scroller">
+
+		<div class="selectable_flex_pane_padder no_top_margin">
+
+			<div class="conversation_details"></div>
+
+			<div class="channel_page_about channel_page_section " data-section-name="about">
+
+				<div class="section_header no_bottom_margin display_flex align_items_center">
+					<i class="ts_icon ts_icon_info channel_page_blue small_right_margin"></i>
+					<a id="channel_page_title" title="Click to expand or collapse" class="flex_one"></a>
+
+					<div class="disclosure_triangle inline_block left_margin">
+						<i class="ts_icon ts_icon_caret_right"></i>
+						<i class="ts_icon ts_icon_caret_down"></i>
+					</div>
+				</div>
+
+				<div class="section_content channel_purpose"></div>
+
+			</div>
+
+			<div class="channel_page_pinned_items channel_page_section " data-section-name="pinned_items">
+
+				<div class="section_header no_bottom_margin display_flex align_items_center">
+					<i class="ts_icon ts_icon_thumb_tack pin_orange small_right_margin"></i>
+					<a title="Click to expand or collapse" class="flex_one" id="pinned_items_title"></a>
+
+					<div class="disclosure_triangle inline_block left_margin">
+						<i class="ts_icon ts_icon_caret_right"></i>
+						<i class="ts_icon ts_icon_caret_down"></i>
+					</div>
+				</div>
+
+				<div class="section_content pinned_items"></div>
+
+			</div>
+
+			<div class="channel_page_members channel_page_section " data-section-name="members">
+				<div class="channel_page_member_tabs section_header"></div>
+				<div class="channel_page_member_lists section_content"></div>
+			</div>
+
+			<div class="channel_page_shared_files channel_page_section " data-section-name="shared_files">
+
+			<div class="section_header no_bottom_margin display_flex align_items_center">
+				<i class="ts_icon ts_icon_all_files mustard_yellow small_right_margin"></i>
+				<a title="Click to expand or collapse" class="flex_one" id="channel_files_title">Shared Files</a>
+
+				<div class="disclosure_triangle inline-block left_margin">
+					<i class="ts_icon ts_icon_caret_right"></i>
+					<i class="ts_icon ts_icon_caret_down"></i>
+				</div>
+			</div>
+
+			<div class="section_content bottom_margin"></div>
+
+			</div>
+
+			<div class="channel_page_notif_prefs channel_page_section " data-section-name="notif_prefs">
+
+				<div class="section_header no_bottom_margin display_flex align_items_center">
+					<span class="channel_page_notif_prefs_mute_state">
+						<i class="ts_icon ts_icon_bell_o moscow_red small_right_margin"></i>
+					</span>
+					<a id="channel_notif_prefs_title" title="Click to expand or collapse" class="flex_one">Notification Preferences</a>
+
+					<div class="disclosure_triangle inline_block left_margin">
+						<i class="ts_icon ts_icon_caret_right"></i>
+						<i class="ts_icon ts_icon_caret_down"></i>
+					</div>
+				</div>
+
+				<div class="section_content"></div>
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+			<div class="panel" id="downloads_tab" style="height: 826px;">
+				<div class="heading">
+					<span id="downloads_tab_header">Downloads</span>
+					<a class="close_flexpane left_margin" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+					<a id="downloads_tab_clear" class="float_right right_padding">Clear all</a>
+				</div>
+				<div id="downloads_empty">
+					<img src="./codesnippet_files/downloads_empty.png" srcset="https://a.slack-edge.com/0180/img/downloads_empty.png 1x, https://a.slack-edge.com/b8a7/img/downloads_empty@2x.png 2x">
+					<p>You can download files by clicking the <i class="ts_icon ts_icon_cloud_download"></i> button.</p>
+				</div>
+				<div id="downloads_scroller" class="flex_content_scroller"></div>
+				<div id="downloads_shift_hint">Hold <span class="key">Shift</span> to open the file.</div>
+			</div>
+			<div class="panel" id="whats_new_tab" style="height: 826px;">
+				<div class="heading">
+					<span id="whats_new_tab_header">What's New</span>
+					<a class="close_flexpane left_margin" title="Close Flexpane"><i class="ts_icon ts_icon_times"></i></a>
+					<div class="flex_heading_controls">
+						<label class="checkbox" for="what_new_read_cb"><input id="what_new_read_cb" type="checkbox"> Notify me about updates</label>
+					</div>
+				</div>
+				<div id="whats_new_scroller" class="flex_content_scroller">
+					<div id="whats_new_updates" class="lato normal_margin">
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1466531318">
+			<h5 class="subtle_silver capitalize">June 21, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slackhq.com/get-more-done-with-message-buttons-5fa5b283a59" target="new" class="indifferent_grey whats_new_content">Do more of your work from Slack</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">We've built a new way to interact with the apps you use in Slack. Message buttons: little bonny buttons services can add to your apps. You can click to accept invites, approve things, and hold proper polls, all within Slack. A dozen apps with buttons are live today, with many more to come.</p>
+							<p class="no_bottom_margin"><a href="https://slackhq.com/get-more-done-with-message-buttons-5fa5b283a59" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1465214400">
+			<h5 class="subtle_silver capitalize">June  6, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slackhq.com/calls-come-to-slack-ad333ce98acf#.o7s7dwh6u" target="new" class="indifferent_grey whats_new_content">Calls: Out of beta and open to all</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">You can now jump on a call whenever you feel the need to talk out loud, directly within Slack. &nbsp;Call anyone on your team simply by clicking the telephone icon in the message menu, or clicking “Call” from their user profile.</p>
+							<p class="no_bottom_margin"><a href="https://slackhq.com/calls-come-to-slack-ad333ce98acf#.o7s7dwh6u" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1463590800">
+			<h5 class="subtle_silver capitalize">May 18, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slackhq.com/learning-to-share-in-slack-d6e4fcff01b8" target="new" class="indifferent_grey whats_new_content">As a wise person on this team once said…</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Sharing messages. The perfect way to loop people in, restart a discussion in a better channel, or revisit an old conversation. Hover over any message and click the “Share message…” icon to share a message, add context and get everyone up to speed.</p>
+							<p class="no_bottom_margin"><a href="https://slackhq.com/learning-to-share-in-slack-d6e4fcff01b8" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1461348113">
+			<h5 class="subtle_silver capitalize">April 22, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">A better way to navigate your message history</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">Hop back to any date in your message history with the handy new <b>​<span class="copyonly">*</span>Jump to date<span class="copyonly">*</span>​</b> feature. You can find it in the settings menu for channels and direct messages. Huzzah! <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:32.5% 42.5%;background-size:4100%" title="rabbit">:rabbit:</span></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1461326400">
+			<h5 class="subtle_silver capitalize">April 22, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slack-files.com/T024BE7LD-F116W8W2H-2b7cb856c1" target="new" class="indifferent_grey whats_new_content">Ringing in Calls for Android (beta)</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">What a glorious day: Now you can accept and join a call from your Android device (tho’ not start one, but soon!). Since you’re part of the beta for Calls on desktop, we thought you might want to try this out. Just make sure to update your mobile app to the latest version, please.</p>
+							<p class="no_bottom_margin"><a href="https://slack-files.com/T024BE7LD-F116W8W2H-2b7cb856c1" target="new">See the Known Issues list for Calls on Android<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1460660400">
+			<h5 class="subtle_silver capitalize">April 14, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slackhq.com/getting-things-done-with-reminders-9bdb7686b57a" target="new" class="indifferent_grey whats_new_content">A friendly reminder about reminders</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Perhaps you use <b>​<span class="copyonly">*</span>/remind<span class="copyonly">*</span>​</b> to set reminders for yourself, other teammates, or even entire channels. As of today, you can also set reminders for any message in Slack, to remind yourself to come back to it. (We set a reminder to remind ourselves to tell you that. It worked!)</p>
+							<p class="no_bottom_margin"><a href="https://slackhq.com/getting-things-done-with-reminders-9bdb7686b57a" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1460046764">
+			<h5 class="subtle_silver capitalize">April  7, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slack-files.com/T024BE7LD-F0XUU5RGU-b4fec434f8" target="new" class="indifferent_grey whats_new_content">Say Hello to Calls for iOS</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">We just released Calls for iOS devices. Since you already use Calls, you get instant access when you update to Slack for iOS 2.90. But there may be some issues. If you want to see whether we know about one before you report it, we've created a handy list for you.</p>
+							<p class="no_bottom_margin"><a href="https://slack-files.com/T024BE7LD-F0XUU5RGU-b4fec434f8" target="new">See the Known Issues list for Calls on iOS<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1458164614">
+			<h5 class="subtle_silver capitalize">March 16, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">JUMBOMOJI</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">Ever feel regular-sized emoji aren't enough to express your inner <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:65% 55%;background-size:4100%" title="joy">:joy:</span>? Us too. So we made JUMBOMOJI. Now, messages containing emoji only (up to 23 at a time) are displayed jumbo-sized. Regular terms and conditions may apply. If emoji have those. We feel like they probably don't. <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:30% 85%;background-size:4100%" title="elephant">:elephant:</span></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1453245140">
+			<h5 class="subtle_silver capitalize">January 19, 2016</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">A faster, smarter Quick Switcher</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">The Quick Switcher just got much much quicker, and smarter to boot. It now remembers the conversations you switch to most frequently and recently, and gets better the more you use it. If it’s not fixed in your muscle memory yet, now’s the perfect time to start: press cmd+k on Mac or ctrl+k on Windows and Linux to give it a try.</p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1450462640">
+			<h5 class="subtle_silver capitalize">December 18, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">Allow others to edit your Posts</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">Have a Post you want to work on with other people? Now, you can! Just check “Let others edit this Post” when sharing your Post, or, after sharing, use the toggle in the ellipsis menu. Done editing? Click “Done Editing” and let the next person take over.</p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1450367764">
+			<h5 class="subtle_silver capitalize">December 17, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="http://slackhq.com/post/135387122640/do-not-disturb" target="new" class="indifferent_grey whats_new_content">Introducing Do Not Disturb</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Need time to yourself? Want to send someone a message after hours without bothering them? Go ahead! With Do Not Disturb, you can snooze notifications (including sounds) on any device for up to 24 hours. <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:50% 40%;background-size:4100%" title="zzz">:zzz:</span></p>
+							<p class="no_bottom_margin"><a href="http://slackhq.com/post/135387122640/do-not-disturb" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1450313139">
+			<h5 class="subtle_silver capitalize">December 16, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">A bigger, better image viewer</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">Our cramped image previews have been replaced with a new full-size view which includes zoom capability. View images as they are meant to be viewed: bigly.</p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1450288800">
+			<h5 class="subtle_silver capitalize">December 16, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="http://slackhq.com/post/134878632730/launch-platform" target="new" class="indifferent_grey whats_new_content">Find New Apps for Your Team</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">We’ve launched Slack’s App Directory with over 150 apps in categories from design to customer support to productivity. Find the products you already use every day and connect them to your Slack team for an instant lift in team productivity and mirth.</p>
+							<p class="no_bottom_margin"><a href="http://slackhq.com/post/134878632730/launch-platform" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1447376659">
+			<h5 class="subtle_silver capitalize">November 12, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">Do More with Messages</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">We’ve done away with that (nearly invisible) gear icon to bring you a new, more visible, more robust message actions menu. Hover over a message to quickly and instantly: add a reaction, edit your message, mark a message as unread, or copy the link to a message so you can reference it later.</p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1446494106">
+			<h5 class="subtle_silver capitalize">November  2, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">Turn off this red dot thing</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">For those who don’t need or want to see what’s new in this What’s New section, you can now untick the checkbox above, and this latest red dot will be the last you’ll ever see. <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:35% 95%;background-size:4100%" title="wave">:wave:</span></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1446248015">
+			<h5 class="subtle_silver capitalize">October 30, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="http://slackhq.com/post/132116511325/customprofiles" target="new" class="indifferent_grey whats_new_content">Customizable, Bigger, Better Profiles</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Which department does Mo work in? Who does Shabnam report to? What’s Bill’s favorite emoji? Now available to admins and owners on paid plans, Custom Profiles lets you set up a profile unique to your team and how you work. We’ve also made the profile a little more <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:7.5% 97.5%;background-size:4100%" title="sparkles">:sparkles:</span> for everyone.</p>
+							<p class="no_bottom_margin"><a href="http://slackhq.com/post/132116511325/customprofiles" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1446152418">
+			<h5 class="subtle_silver capitalize">October 29, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="http://slackhq.com/post/132108708810/usergroups" target="new" class="indifferent_grey whats_new_content">User Groups and Default Channels</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Want to get the attention of some people without bugging anyone else? Now available for teams on paid plans, User Groups allow you to create <b>​<span class="copyonly">*</span>@windows-users<span class="copyonly">*</span>​</b> or <b>​<span class="copyonly">*</span>@trekkies<span class="copyonly">*</span>​</b> or <b>​<span class="copyonly">*</span>@interns<span class="copyonly">*</span>​</b> (or anything you like!) AND to add anyone joining that group to a designated set of channels.</p>
+							<p class="no_bottom_margin"><a href="http://slackhq.com/post/132108708810/usergroups" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1446033601">
+			<h5 class="subtle_silver capitalize">October 28, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">What’s New</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">We added a <b>​<span class="copyonly">*</span>What’s New<span class="copyonly">*</span>​</b> section with a natty red badge, for more expediently and efficiently letting you know what’s new. You’re looking at it. <span class="emoji-outer emoji-sizer" style="background: url(https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png);background-position:70% 10%;background-size:4100%" title="slightly_smiling_face">:slightly_smiling_face:</span></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1446033600">
+			<h5 class="subtle_silver capitalize">October 28, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<span class="whats_new_content">Preference for Channel List Display</span>			</h3>
+			<p class="small_bottom_margin whats_new_content">Don’t want your public and private channels mixed? They don’t have to be. In your user preferences, choose <b>​<span class="copyonly">*</span>List public and private channels separately<span class="copyonly">*</span>​</b> in <b>​<span class="copyonly">*</span>Advanced Options<span class="copyonly">*</span>​</b> to keep them separated.</p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1445929200">
+			<h5 class="subtle_silver capitalize">October 27, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="http://slackhq.com/post/131956541795/groupmessages" target="new" class="indifferent_grey whats_new_content">Group Messages</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Pull up to 8 people into a private conversation without needing to create a channel for it. Use <b>​<span class="copyonly">*</span>cmd+shift+k<span class="copyonly">*</span>​</b> on the Mac App, <b>​<span class="copyonly">*</span>ctrl+shift+k<span class="copyonly">*</span>​</b> on Windows/Linux, or click the <b>​<span class="copyonly">*</span>+<span class="copyonly">*</span>​</b> next to the Direct Message header to bring up the DM screen and create or view DMs and Group Messages.</p>
+							<p class="no_bottom_margin"><a href="http://slackhq.com/post/131956541795/groupmessages" target="new">Read the blog post<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+			<div class="bottom_border bottom_margin bottom_padding" data-whats-new-id="1445410800">
+			<h5 class="subtle_silver capitalize">October 21, 2015</h5>
+			<h3 class="no_bottom_margin">
+				<a href="https://slack.zendesk.com/hc/en-us/articles/212221668-Team-wide-two-factor-authentication" target="new" class="indifferent_grey whats_new_content">Mandatory Two-Factor Authentication and Backup Codes</a>			</h3>
+			<p class="small_bottom_margin whats_new_content">Need to make sure everyone on your team is safe and secure? Teams on paid plans can now turn on Mandatory Two-Factor Authentication. Because you should always trust your team to be themselves.</p>
+							<p class="no_bottom_margin"><a href="https://slack.zendesk.com/hc/en-us/articles/212221668-Team-wide-two-factor-authentication" target="new">Learn about two-factor authentication<i class="ts_icon ts_icon_chevron_right ts_icon_inherit align_bottom"></i></a></p>
+					</div>
+	</div>				</div>
+			</div>
+			
+		</div>
+
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var cdn_url = "https:\/\/slack.global.ssl.fastly.net";
+var inc_js_setup_data = {
+	emoji_sheets: {
+		apple: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_apple_64_indexed_256colors.png',
+		google: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_google_64_indexed_128colors.png',
+		twitter: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_twitter_64_indexed_128colors.png',
+		emojione: 'https://a.slack-edge.com/f360/img/emoji_2016_06_08/sheet_emojione_64_indexed_128colors.png',
+	},
+};
+</script>
+
+
+	
+	
+
+
+<script>window.ts_before_core_js = Date.now();</script>
+<!-- output_js "core" -->
+<script type="text/javascript" src="./codesnippet_files/rollup-core_required_libs.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="./codesnippet_files/rollup-core_required_ts.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="./codesnippet_files/bootstrap-client.js" crossorigin="anonymous"></script>
+
+<script>window.ts_after_core_js = Date.now();</script>
+
+<script type="text/javascript">
+<!--
+	// common boot_data
+	var boot_data = {
+		start_ms: Date.now(),
+		app: 'client',
+		user_id: 'U1LE5CWTF',
+		no_login: false,
+		version_ts: '1467126484',
+		version_uid: 'b0e8f5e495fe002463ce8df267354289520c1557',
+		cache_version: "v13-tiger",
+		cache_ts_version: "v1-cat",
+		redir_domain: 'slack-redir.net',
+		signin_url: 'https://slack.com/signin',
+		abs_root_url: 'https://slack.com/',
+		api_url: '/api/',
+		team_url: 'https://efasummertracks.slack.com/',
+		image_proxy_url: 'https://slack-imgs.com/',
+		beacon_timing_url: "https:\/\/slack.com\/beacon\/timing",
+		beacon_error_url: "https:\/\/slack.com\/beacon\/error",
+		clog_url: "clog\/track\/",
+		api_token: 'xoxs-54438860742-54481438933-55025194279-a96d18c100',
+		ls_disabled: false,
+
+		notification_sounds: [{"value":"b2.mp3","label":"Ding","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/b2.mp3"},{"value":"animal_stick.mp3","label":"Boing","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/animal_stick.mp3"},{"value":"been_tree.mp3","label":"Drop","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/been_tree.mp3"},{"value":"complete_quest_requirement.mp3","label":"Ta-da","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/complete_quest_requirement.mp3"},{"value":"confirm_delivery.mp3","label":"Plink","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/confirm_delivery.mp3"},{"value":"flitterbug.mp3","label":"Wow","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/flitterbug.mp3"},{"value":"here_you_go_lighter.mp3","label":"Here you go","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/here_you_go_lighter.mp3"},{"value":"hi_flowers_hit.mp3","label":"Hi","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/hi_flowers_hit.mp3"},{"value":"item_pickup.mp3","label":"Yoink","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/item_pickup.mp3"},{"value":"knock_brush.mp3","label":"Knock Brush","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/knock_brush.mp3"},{"value":"save_and_checkout.mp3","label":"Woah!","url":"https:\/\/slack.global.ssl.fastly.net\/dfc0\/sounds\/push\/save_and_checkout.mp3"},{"value":"none","label":"None"}],
+		alert_sounds: [{"value":"frog.mp3","label":"Frog","url":"https:\/\/slack.global.ssl.fastly.net\/a34a\/sounds\/frog.mp3"}],
+		call_sounds: [{"value":"call\/alert_v2.mp3","label":"Alert","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/alert_v2.mp3"},{"value":"call\/incoming_ring_v2.mp3","label":"Incoming ring","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/incoming_ring_v2.mp3"},{"value":"call\/outgoing_ring_v2.mp3","label":"Outgoing ring","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/outgoing_ring_v2.mp3"},{"value":"call\/pop_v2.mp3","label":"Incoming reaction","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/pop_v2.mp3"},{"value":"call\/they_left_call_v2.mp3","label":"They left call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/they_left_call_v2.mp3"},{"value":"call\/you_left_call_v2.mp3","label":"You left call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/you_left_call_v2.mp3"},{"value":"call\/they_joined_call_v2.mp3","label":"They joined call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/they_joined_call_v2.mp3"},{"value":"call\/you_joined_call_v2.mp3","label":"You joined call","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/you_joined_call_v2.mp3"},{"value":"call\/confirmation_v2.mp3","label":"Confirmation","url":"https:\/\/slack.global.ssl.fastly.net\/08f7\/sounds\/call\/confirmation_v2.mp3"}],
+		call_sounds_version: "v2",
+		max_team_handy_rxns: 5,
+		max_channel_handy_rxns: 5,
+		max_poll_handy_rxns: 7,
+		max_handy_rxns_title_chars: 30,
+		
+		feature_tinyspeck: false,
+		feature_signup_email_confirmation: true,
+		feature_create_team_google_auth: false,
+		feature_api_extended_2fa_backup: false,
+		feature_pause_api_when_connection_fails: true,
+		feature_less_history: true,
+		feature_rtm_start_over_ms: false,
+		feature_beacon_dom_node_count: true,
+		feature_incremental_boot: true,
+		feature_message_replies: false,
+		feature_no_rollups: false,
+		feature_web_lean: false,
+		feature_web_lean_all_users: false,
+		feature_reminders_v3: true,
+		feature_all_skin_tones: false,
+		feature_server_side_emoji_counts: true,
+		feature_a11y_keyboard_shortcuts: false,
+		feature_email_ingestion: false,
+		feature_msg_consistency: false,
+		feature_sli_channel_priority: false,
+		feature_sli_similar_channels: false,
+		feature_emoji_keywords: false,
+		feature_thanks: false,
+		feature_attachments_inline: false,
+		feature_billing_netsuite: true,
+		feature_fix_files: true,
+		feature_files_list: true,
+		feature_channel_eventlog_client: true,
+		feature_macssb1_banner: true,
+		feature_macssb2_banner: true,
+		feature_latest_event_ts: true,
+		feature_elide_closed_dms: true,
+		feature_no_redirects_in_ssb: true,
+		feature_referer_policy: true,
+		feature_more_field_in_message_attachments: false,
+		feature_calls: true,
+		feature_calls_no_rtm_start: true,
+		feature_integrations_message_preview: true,
+		feature_paging_api: false,
+		feature_enterprise_dashboard: true,
+		feature_enterprise_api: true,
+		feature_enterprise_create: true,
+		feature_enterprise_api_auth: true,
+		feature_enterprise_profile: true,
+		feature_enterprise_search: true,
+		feature_enterprise_team_invite: true,
+		feature_enterprise_locked_settings: false,
+		feature_enterprise_search_ui: false,
+		feature_private_channels: true,
+		feature_mpim_restrictions: false,
+		feature_subteams_hard_delete: false,
+		feature_no_unread_counts: true,
+		feature_js_raf_queue: false,
+		feature_shared_channels: false,
+		feature_shared_channels_ui: false,
+		feature_external_shared_channels_ui: false,
+		feature_batch_users: false,
+		feature_lazy_filter_select: true,
+		feature_updated_channel_options_flow: false,
+		feature_shared_channels_settings: false,
+		feature_fast_files_flexpane: true,
+		feature_no_has_files: true,
+		feature_custom_saml_signin_button_label: true,
+		feature_admin_approved_apps: false,
+		feature_winssb_beta_channel: false,
+		feature_inline_video: false,
+		feature_developers_lp: true,
+		feature_upload_file_switch_channel: true,
+		feature_live_support: true,
+		feature_dm_yahself: true,
+		feature_slackbot_goes_to_college: false,
+		feature_popover_dismiss_only: true,
+		feature_attachment_actions: true,
+		feature_shared_invites: true,
+		feature_lato_2_ssb: true,
+		feature_refactor_buildmsghtml: false,
+		feature_reduce_files_page_size: true,
+		feature_allow_cdn_experiments: false,
+		feature_omit_localstorage_users_bots: false,
+		feature_disable_ls_compression: false,
+		feature_sign_in_with_slack: true,
+		feature_sign_in_with_slack_ui_elements: true,
+		feature_indigenous_scroll: true,
+		feature_indigenous_scroll_batch_2: false,
+		feature_prevent_msg_rebuild: false,
+		feature_app_review_part_2: false,
+		feature_new_app_modal: false,
+		feature_name_tagging_client: false,
+		feature_msg_input_contenteditable: false,
+		feature_browse_date: true,
+		feature_use_imgproxy_resizing: false,
+		feature_events_api_frontend: false,
+		feature_update_message_file: false,
+		feature_custom_clogs: true,
+		feature_channels_view_introspect_messages: false,
+		feature_intercept_format_copy: false,
+		feature_calls_linux: true,
+		feature_emoji_hover_styles: true,
+		feature_emoji_speed: false,
+		feature_a11y_preference: false,
+		feature_share_mention_comment_cleanup: false,
+		feature_search_menu: true,
+		feature_unread_view: false,
+		feature_tw: false,
+		feature_tw_ls_disabled: false,
+		feature_external_files: false,
+		feature_channel_info_pins_and_guests: false,
+		feature_min_web: false,
+		feature_electron_memory_logging: false,
+		feature_limit_jl_rollups: true,
+		feature_jumper_open_state: true,
+		feature_jumper_archived_channels: true,
+		feature_optimize_mentions_stars_paging: true,
+		feature_simple_file_events: true,
+		feature_empty_flexpanes: true,
+		feature_backend_frecency_validation: false,
+		feature_backend_frecency_pruning: false,
+		feature_devrel_try_it_now: false,
+		feature_defer_history: true,
+		feature_free_inactive_domains: false,
+		feature_invite_modal_refresh: false,
+		feature_slackbot_feels: false,
+		feature_platform_calls: false,
+
+		img: {
+			app_icon: 'https://a.slack-edge.com/272a/img/slack_growl_icon.png'
+		},
+		page_needs_custom_emoji: false,
+		page_needs_team_profile_fields: false,
+		page_needs_enterprise: false,
+		slackbot_help_enabled: true
+	};
+
+	
+			boot_data.hbs_templates_version = "3a67_7d8d";
+	
+			boot_data.ms_connect_url = "wss:\/\/mpmulti-WZZ5.slack-msgs.com\/connect";
+	
+	// client boot data
+	
+				boot_data.logout_url = "https:\/\/slack.com\/"+'signout/'+"54438860742"+'?crumb=s-1467128346-7302ad6d67-%E2%98%83';
+		boot_data.async_api_url = 'https://upload.slack.com/api/';
+		boot_data.other_accounts = {"U1F5E5XSQ":{"id":"U1F5E5XSQ","name":"asohail21","team_id":"T1E5BS8E6","team_url":"https:\/\/efaintroweekend.slack.com\/","team_name":"ElevenFiftyIntroWeekend","team_color":null,"team_icon":{"image_34":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0024-34.png","image_44":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0024-44.png","image_68":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0024-68.png","image_88":"https:\/\/a.slack-edge.com\/b3b7\/img\/avatars-teams\/ava_0024-88.png","image_102":"https:\/\/a.slack-edge.com\/b3b7\/img\/avatars-teams\/ava_0024-102.png","image_132":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0024-132.png","image_230":"https:\/\/a.slack-edge.com\/9e9be\/img\/avatars-teams\/ava_0024-230.png","image_default":true}}};
+		boot_data.codemirror_types = [{"type":"text","label":"Plain Text"},{"type":"-","label":"-"},{"type":"applescript","label":"AppleScript"},{"type":"boxnote","label":"BoxNote"},{"type":"c","label":"C"},{"type":"csharp","label":"C#"},{"type":"cpp","label":"C++"},{"type":"css","label":"CSS"},{"type":"csv","label":"CSV"},{"type":"clojure","label":"Clojure"},{"type":"coffeescript","label":"CoffeeScript"},{"type":"cfm","label":"Cold Fusion"},{"type":"d","label":"D"},{"type":"dart","label":"Dart"},{"type":"diff","label":"Diff"},{"type":"dockerfile","label":"Docker"},{"type":"erlang","label":"Erlang"},{"type":"fsharp","label":"F#"},{"type":"fortran","label":"Fortran"},{"type":"go","label":"Go"},{"type":"groovy","label":"Groovy"},{"type":"html","label":"HTML"},{"type":"handlebars","label":"Handlebars"},{"type":"haskell","label":"Haskell"},{"type":"haxe","label":"Haxe"},{"type":"java","label":"Java"},{"type":"javascript","label":"JavaScript\/JSON"},{"type":"kotlin","label":"Kotlin"},{"type":"latex","label":"LaTeX\/sTeX"},{"type":"lisp","label":"Lisp"},{"type":"lua","label":"Lua"},{"type":"matlab","label":"MATLAB"},{"type":"mumps","label":"MUMPS"},{"type":"markdown","label":"Markdown (raw)"},{"type":"ocaml","label":"OCaml"},{"type":"objc","label":"Objective-C"},{"type":"php","label":"PHP"},{"type":"pascal","label":"Pascal"},{"type":"perl","label":"Perl"},{"type":"pig","label":"Pig"},{"type":"post","label":"Post"},{"type":"powershell","label":"Powershell"},{"type":"puppet","label":"Puppet"},{"type":"python","label":"Python"},{"type":"r","label":"R"},{"type":"ruby","label":"Ruby"},{"type":"rust","label":"Rust"},{"type":"sql","label":"SQL"},{"type":"sass","label":"Sass"},{"type":"scala","label":"Scala"},{"type":"scheme","label":"Scheme"},{"type":"shell","label":"Shell"},{"type":"smalltalk","label":"Smalltalk"},{"type":"swift","label":"Swift"},{"type":"tsv","label":"TSV"},{"type":"vb","label":"VB.NET"},{"type":"vbscript","label":"VBScript"},{"type":"velocity","label":"Velocity"},{"type":"verilog","label":"Verilog"},{"type":"xml","label":"XML"},{"type":"yaml","label":"YAML"}];
+		boot_data.help_url = '/help/';
+		boot_data.box_js_url = "https:\/\/app.box.com\/js\/static\/select.js";
+		boot_data.box_app_key = "7qb0upkmzej553p5c70ppb2b0kvtrc43";
+		boot_data.dropbox_js_url = "https:\/\/www.dropbox.com\/static\/api\/2\/dropins.js";
+		boot_data.dropbox_app_key = "rciq3gnem9oirk6";
+		
+		
+					boot_data.incremental_boot_data = {"team":{"domain":"efasummertracks","id":"T1LCWRAMU","name":"ElevenFiftySummerTracks","prefs":{"invites_only_admins":false,"invites_limit":true,"default_channels":["54442773200","54397950115"],"seen_invites_only_admins_warning":true,"hide_referers":true,"msg_edit_window_mins":-1,"allow_message_deletion":true,"allow_calls":true,"display_real_names":false,"who_can_at_everyone":"regular","who_can_at_channel":"ra","who_can_create_channels":"regular","who_can_archive_channels":"regular","who_can_create_groups":"ra","who_can_post_general":"ra","who_can_kick_channels":"admin","who_can_kick_groups":"regular","retention_type":0,"retention_duration":0,"group_retention_type":0,"group_retention_duration":0,"dm_retention_type":0,"dm_retention_duration":0,"file_retention_duration":0,"file_retention_type":0,"allow_retention_override":true,"require_at_for_mention":false,"default_rxns":["simple_smile","thumbsup","white_check_mark","heart","eyes"],"team_handy_rxns":{"restrict":false,"list":[{"name":"slightly_smiling_face","title":"I'm happy!"},{"name":"+1","title":"good!"},{"name":"white_check_mark","title":"done!"},{"name":"heart","title":"love it!"},{"name":"eyes","title":"looking..."}]},"channel_handy_rxns":null,"compliance_export_start":0,"warn_before_at_channel":"always","disallow_public_file_urls":false,"who_can_create_delete_user_groups":"admin","who_can_edit_user_groups":"admin","who_can_change_team_profile":"admin","allow_shared_channels":false,"who_has_team_visibility":"ra","disable_file_uploads":"allow_all","who_can_create_shared_channels":"admin","who_can_manage_shared_channels":{"type":["admin"]},"who_can_post_in_shared_channels":{"type":["regular"]},"allow_shared_channel_perms_override":false,"no_primary_billing":false,"trial_eligible":1,"billing_email_daily":true,"billing_email_monthly":false,"has_compliance_export":false,"sso_sync_with_provider":true,"scheduled_exports_type":0,"scheduled_exports_user":0,"two_factor_auth_required":null,"session_duration":-1,"skip_mail_tls_certificate_verification":false,"change_gateways":false,"has_shared_invites":false,"calls_sent_welcome_to_admins":false,"test_team":false,"spaces_opt_in":false,"has_enhanced_export":false,"two_factor_required":false,"has_setup_organization":false,"who_can_create_delete_auto_user_groups":"admin","disable_builtin_loading":false,"sign_in_with_slack_disabled":false,"dnd_enabled":true,"dnd_start_hour":"22:00","dnd_end_hour":"08:00","sso_choose_username":true,"sso_change_email":null,"auth_mode":"normal","who_can_manage_integrations":{"type":["regular"]},"image_34":"https:\/\/a.slack-edge.com\/0180\/img\/avatars-teams\/ava_0009-34.png","image_44":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0009-44.png","image_68":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0009-68.png","image_88":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0009-88.png","image_102":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0009-102.png","image_132":"https:\/\/a.slack-edge.com\/66f9\/img\/avatars-teams\/ava_0009-132.png","image_230":"https:\/\/a.slack-edge.com\/9e9be\/img\/avatars-teams\/ava_0009-230.png","image_default":true,"disabled_loading_categories":"28739679876"}},"self":{"prefs":{"highlight_words":"","user_colors":"","color_names_in_list":true,"growls_enabled":true,"tz":"America\/Los_Angeles","push_dm_alert":true,"push_mention_alert":true,"msg_replies":"{ \"flexpane\":false }","push_everything":false,"push_idle_wait":2,"push_sound":"b2.mp3","push_loud_channels":"","push_mention_channels":"","push_loud_channels_set":"","email_alerts":"instant","email_alerts_sleep_until":0,"email_misc":true,"email_weekly":true,"welcome_message_hidden":false,"all_channels_loud":false,"loud_channels":"","never_channels":"","loud_channels_set":"","show_member_presence":true,"search_sort":"timestamp","expand_inline_imgs":true,"expand_internal_inline_imgs":true,"expand_snippets":false,"posts_formatting_guide":true,"seen_welcome_2":true,"seen_ssb_prompt":false,"spaces_new_xp_banner_dismissed":false,"search_only_my_channels":false,"emoji_mode":"default","emoji_use":"{}","has_invited":false,"has_uploaded":false,"has_created_channel":false,"search_exclude_channels":"","messages_theme":"default","webapp_spellcheck":true,"no_joined_overlays":false,"no_created_overlays":false,"dropbox_enabled":false,"seen_domain_invite_reminder":false,"seen_member_invite_reminder":false,"mute_sounds":false,"arrow_history":false,"tab_ui_return_selects":true,"obey_inline_img_limit":true,"new_msg_snd":"knock_brush.mp3","require_at":true,"ssb_space_window":"","mac_ssb_bounce":"","mac_ssb_bullet":true,"expand_non_media_attachments":true,"show_typing":true,"pagekeys_handled":true,"last_snippet_type":"","display_real_names_override":0,"display_preferred_names":true,"time24":false,"enter_is_special_in_tbt":false,"graphic_emoticons":false,"convert_emoticons":true,"ss_emojis":true,"sidebar_behavior":"","seen_onboarding_start":true,"onboarding_cancelled":false,"seen_onboarding_slackbot_conversation":true,"seen_onboarding_channels":true,"seen_onboarding_direct_messages":true,"seen_onboarding_invites":true,"seen_onboarding_search":false,"seen_onboarding_recent_mentions":false,"seen_onboarding_starred_items":false,"seen_onboarding_private_groups":false,"onboarding_slackbot_conversation_step":10,"dnd_enabled":true,"dnd_start_hour":"22:00","dnd_end_hour":"08:00","ent_teams":null,"mark_msgs_read_immediately":true,"start_scroll_at_oldest":true,"snippet_editor_wrap_long_lines":false,"ls_disabled":false,"sidebar_theme":"default","sidebar_theme_custom_values":"","f_key_search":false,"k_key_omnibox":true,"speak_growls":false,"mac_speak_voice":"com.apple.speech.synthesis.voice.Alex","mac_speak_speed":250,"comma_key_prefs":false,"at_channel_suppressed_channels":"","push_at_channel_suppressed_channels":"","prompted_for_email_disabling":false,"full_text_extracts":false,"no_text_in_notifications":false,"muted_channels":"","no_macssb1_banner":false,"no_macssb2_banner":false,"no_winssb1_banner":false,"no_omnibox_in_channels":false,"k_key_omnibox_auto_hide_count":0,"hide_user_group_info_pane":false,"mentions_exclude_at_user_groups":false,"privacy_policy_seen":true,"api_tos_consented":0,"api_tos_notified":0,"app_directory_channel":"","app_directory_channel_time":0,"search_exclude_bots":false,"load_lato_2":false,"fuller_timestamps":false,"last_seen_at_channel_warning":0,"flex_resize_window":false,"msg_preview":false,"msg_preview_displaces":true,"msg_preview_persistent":true,"emoji_autocomplete_big":false,"winssb_run_from_tray":true,"winssb_window_flash_behavior":"idle","two_factor_auth_enabled":false,"two_factor_type":null,"two_factor_backup_type":null,"enhanced_debugging":false,"mentions_exclude_at_channels":true,"confirm_clear_all_unreads":true,"confirm_user_marked_away":true,"box_enabled":false,"seen_single_emoji_msg":false,"confirm_sh_call_start":true,"preferred_skin_tone":"","show_all_skin_tones":false,"separate_private_channels":false,"whats_new_read":1466996749,"hotness":false,"frecency_jumper":"","jumbomoji":true,"no_flex_in_history":true,"newxp_seen_last_message":"1","attachments_with_borders":false,"show_memory_instrument":false,"channel_sort":"{\"is_custom_sorted\":false, \"priority_display\":false, \"priority_type\":\"\", \"sorts\":[]}","a11y_font_size":"normal","greeting_step":"","intro_step":"","onboarding_pause":"","last_newxp_message":1466996792,"two_factor_initialization_key":"","two_factor_backup_codes":"","push_disabled_email":false,"needs_notification_prompt":false,"dnd_seen_snooze_warn":0,"self_dm_initialized":false,"self_dm_and_slackbot_help_initialized":true,"newxp_slackbot_step":"","newxp_seen_check_signup_email":0,"newxp_handled_check_signup_email":0,"newxp_seen_allow_signup_domains":0,"newxp_handled_allow_signup_domains":0,"newxp_seen_allow_signup_domains_2":0,"newxp_handled_allow_signup_domains_2":0,"newxp_seen_shared_invite":0,"newxp_seen_help_message":"1"}}};
+		
+	
+								boot_data["exp_search_menu"] = "facelift";
+							boot_data.experiment_client_metrics = {"search_modifier_usage":["search_menu"]};
+		
+			
+//-->
+</script>
+<script type="text/javascript">
+boot_data.page_needs_custom_cmds = true;
+boot_data.page_needs_custom_emoji = true;
+boot_data.page_needs_emoji_menu = true;
+boot_data.can_add_ura = false;
+boot_data.default_channels = [{"id":"C1LD0NR5W","name":"general","is_default":true},{"id":"C1LBPTY3D","name":"random","is_default":true}];
+boot_data.should_use_local_lato_2 = false;
+
+TS.boot(boot_data);
+</script>
+
+<!-- output_js "secondary" -->
+<script type="text/javascript" src="./codesnippet_files/rollup-secondary_a_required.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="./codesnippet_files/rollup-secondary_b_required.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="./codesnippet_files/rollup-client.js" crossorigin="anonymous"></script>
+
+<!-- output_js "regular" -->
+<script type="text/javascript" src="./codesnippet_files/TS.ui.date_picker.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="./codesnippet_files/TS.attachment_actions.js" crossorigin="anonymous"></script>
+
+
+
+<script type="text/javascript">
+
+if (TS && TS.client && TS.client.ui) {
+
+	TS.client.ui.prefReset = function(pref) {
+		TS.api.call('users.prefs.set', {
+			name: pref,
+			value: false
+		});
+	}
+
+	function gongSound(autoload) {
+		if (soundManager && soundManager.ok()) {
+			var sound = soundManager.createSound({
+				id: 'pp_gong',
+				url: 'https://a.slack-edge.com/ec58/sounds/gong.mp3',
+				volume: 100
+			});
+			if (autoload) {
+				sound.load();
+			}
+			return sound;
+		}
+		return null;
+	}
+
+	function modalFactory(modal_config, pref) {
+		return new Promise(function (resolve, reject) {
+			var shift_key_pressed;
+
+			// Override for testing
+			if (TS.model.prefs[pref] && window.location.href.indexOf(pref) !== -1) {
+				TS.model.prefs[pref] = false;
+			}
+
+			// Safety net: Exit if pref not defined
+			if (typeof TS.model.prefs[pref] === 'undefined') return resolve();
+
+			var new_config = Object.create(modal_config);
+
+			new_config.onShow = function () {
+				if (modal_config.onShow) {
+					modal_config.onShow();
+				}
+				$('#fs_modal').addClass(pref + '_dialog');
+
+				// preload watcher
+				// saves state of the shift key so we don't have to modify generic modal's event handling
+				$(document).on('keydown', function(e) {
+					if (e.shiftKey) {
+						shift_key_pressed = true;
+						try {
+							gongSound(true);
+						} catch(e) {
+							// oh well
+						}
+					}
+				});
+
+				$(document).on('keyup', function(e) {
+					shift_key_pressed = false;
+				});
+
+				// Don't focus the textbox in the background
+				TS.client.ui.$msg_input.blur();
+			};
+
+			// Modify onEnd, so we can DRYly update the api and resolve the promise
+			// Also, gong. very important.
+			new_config.onEnd = function () {
+				if (modal_config.onEnd) {
+					modal_config.onEnd();
+				}
+
+				var sound;
+
+				TS.api.call('users.prefs.set', {
+					name: pref,
+					value: true
+				});
+
+				if (shift_key_pressed && soundManager && soundManager.ok()) {
+					// Ring in this agreement - literally.
+					sound = gongSound();
+					if (sound) {
+						sound.play();
+					}
+				}
+
+				// release preload watcher
+				$(document).off('keydown');
+				$(document).off('keyup');
+
+				TS.api.call('users.prefs.set', {
+					name: pref,
+					value: true
+				});
+
+				$('#fs_modal').one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function () {
+					$('#fs_modal').removeClass(pref + '_dialog');
+					return resolve();
+				});
+			};
+
+			// Exit if already seen
+			if (TS.model.prefs[pref]) {
+				return resolve();
+			} else {
+				TS.client.ui.$msg_input.blur();
+				TS.generic_dialog.start(new_config);
+			}
+
+			// watch for changes on the pref
+			TS.prefs[pref + '_changed_sig'].add(function () {
+				if (!TS.model.prefs[pref]) {
+					TS.generic_dialog.start(new_config);
+				} else if (TS.ui.fs_modal.is_showing) {
+					TS.ui.fs_modal.close();
+				} else if (TS.generic_dialog.is_showing) {
+					TS.generic_dialog.cancel();
+				}
+			}, TS.client.ui);
+		});
+	}
+
+	TS.client.login_sig.add(function() {
+		// Hack to deal with the crazy load the client on startup.
+		Promise.delay(50).then(function (d) {
+			var pref = 'privacy_policy_seen';
+			var config = {
+				body_template_html: [
+					'<div class="modal-content">',
+					'	<div class="bd modal-body">',
+					'		<div class="policy-emoji"></div>',
+					'		<h1>Updating our Policies</h1>',
+					'		<p>Slack is growing very quickly. To align with upcoming product features we are making some carefully considered changes to our Privacy Policy and Terms of Service. We don\'t plan to do this very often and we appreciate you taking the time to read through them. These changes go into effect on <b>January 1st, 2015.</b></p>',
+					'		<p class="bold small_bottom_margin">Read the <a href="https://slack.com/privacy-policy" target="_blank" class="no_underline">Privacy Policy, Terms of Service &amp; FAQ</a></p>',
+					'		<p style="margin-top:1.5rem"><a class="btn btn_success btn_large dialog_go small_bottom_margin">Continue to your team</a></p>',
+					'		<p class="legal-note">By continuing, you agree to the new policies listed above for your use of Slack after December 31st, 2014, for all the teams you use as ' + TS.model.user.profile.email + '. <a href="https://slack.zendesk.com/hc/en-us/articles/203950296" target="_blank" class="no_underline">Learn more</a></b> about your alternatives.</p>',
+					'	</div>',
+					'</div>'
+				].join('\n'),
+				fullscreen: true,
+				show_cancel_button: false
+			};
+
+			return modalFactory(config, pref);
+		}).catch(function (d) {
+			TS.warn('Oh no, something went wrong');
+		});
+
+	}, TS.client.ui);
+
+}
+
+</script>
+
+
+
+
+<style>.color_9f69e7:not(.nuc) {color:#9F69E7;}.color_4bbe2e:not(.nuc) {color:#4BBE2E;}.color_e7392d:not(.nuc) {color:#E7392D;}.color_3c989f:not(.nuc) {color:#3C989F;}.color_674b1b:not(.nuc) {color:#674B1B;}.color_e96699:not(.nuc) {color:#E96699;}.color_e0a729:not(.nuc) {color:#E0A729;}.color_684b6c:not(.nuc) {color:#684B6C;}.color_5b89d5:not(.nuc) {color:#5B89D5;}.color_2b6836:not(.nuc) {color:#2B6836;}.color_99a949:not(.nuc) {color:#99A949;}.color_df3dc0:not(.nuc) {color:#DF3DC0;}.color_4cc091:not(.nuc) {color:#4CC091;}.color_9b3b45:not(.nuc) {color:#9B3B45;}.color_d58247:not(.nuc) {color:#D58247;}.color_bb86b7:not(.nuc) {color:#BB86B7;}.color_5a4592:not(.nuc) {color:#5A4592;}.color_db3150:not(.nuc) {color:#DB3150;}.color_235e5b:not(.nuc) {color:#235E5B;}.color_9e3997:not(.nuc) {color:#9E3997;}.color_53b759:not(.nuc) {color:#53B759;}.color_c386df:not(.nuc) {color:#C386DF;}.color_385a86:not(.nuc) {color:#385A86;}.color_a63024:not(.nuc) {color:#A63024;}.color_5870dd:not(.nuc) {color:#5870DD;}.color_ea2977:not(.nuc) {color:#EA2977;}.color_50a0cf:not(.nuc) {color:#50A0CF;}.color_d55aef:not(.nuc) {color:#D55AEF;}.color_d1707d:not(.nuc) {color:#D1707D;}.color_43761b:not(.nuc) {color:#43761B;}.color_e06b56:not(.nuc) {color:#E06B56;}.color_8f4a2b:not(.nuc) {color:#8F4A2B;}.color_902d59:not(.nuc) {color:#902D59;}.color_de5f24:not(.nuc) {color:#DE5F24;}.color_a2a5dc:not(.nuc) {color:#A2A5DC;}.color_827327:not(.nuc) {color:#827327;}.color_3c8c69:not(.nuc) {color:#3C8C69;}.color_8d4b84:not(.nuc) {color:#8D4B84;}.color_84b22f:not(.nuc) {color:#84B22F;}.color_4ec0d6:not(.nuc) {color:#4EC0D6;}.color_e23f99:not(.nuc) {color:#E23F99;}.color_e475df:not(.nuc) {color:#E475DF;}.color_619a4f:not(.nuc) {color:#619A4F;}.color_a72f79:not(.nuc) {color:#A72F79;}.color_7d414c:not(.nuc) {color:#7D414C;}.color_aba727:not(.nuc) {color:#ABA727;}.color_965d1b:not(.nuc) {color:#965D1B;}.color_4d5e26:not(.nuc) {color:#4D5E26;}.color_dd8527:not(.nuc) {color:#DD8527;}.color_bd9336:not(.nuc) {color:#BD9336;}.color_e85d72:not(.nuc) {color:#E85D72;}.color_dc7dbb:not(.nuc) {color:#DC7DBB;}.color_bc3663:not(.nuc) {color:#BC3663;}.color_9d8eee:not(.nuc) {color:#9D8EEE;}.color_8469bc:not(.nuc) {color:#8469BC;}.color_73769d:not(.nuc) {color:#73769D;}.color_b14cbc:not(.nuc) {color:#B14CBC;}</style>
+
+<!-- slack-www1050 / 2016-06-28 08:39:06 / vb0e8f5e495fe002463ce8df267354289520c1557 / B:P -->
+
+
+<div id="chat_input_tab_ui" class="tab_complete_ui hidden inactive" style="width: 1074px; top: 855px; left: 284px;"> 					<div class="popover_mask"></div> 					<div class="tab_complete_ui_content"> 						<div id="chat_input_tab_ui_header" class="tab_complete_ui_header"> 							<span class="header_label"></span> 							<span class="header_search_term"></span> 							<span class="header_help"><strong>tab</strong>&nbsp; or &nbsp;<strong>↑</strong> <strong>↓</strong>&nbsp; to navigate <strong class="left_margin">↵</strong>&nbsp; to select <strong class="left_margin">esc</strong>&nbsp; to dismiss</span> 						</div> 					<div id="chat_input_tab_ui_scroller" class="tab_complete_ui_scroller" style=""></div></div> 				</div><textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; transition: none; height: 0px !important; min-height: 0px !important; font-family: Slack-Lato, appleLogo, sans-serif; font-size: 15px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; word-spacing: 0px; text-indent: 0px; line-height: 19.2px; width: 1074px;" class="autosizejs" id="autosizejs" autocorrect="off" autocomplete="off" spellcheck="true"></textarea><div contenteditable="" class="offscreen"></div><div id="aria_live_announcer" role="status" aria-live="assertive">Channel #codesnippets</div><ts-jumper>
+	<ts-jumper-container>
+		<ts-jumper-help aria-hidden="true">
+			Jump to a conversation
+			<span class="float_right">
+				<strong>tab</strong>&nbsp; or &nbsp;<strong>↑</strong> <strong>↓</strong>&nbsp; to navigate <strong class="small_left_margin" aria-label="Return">↵</strong>&nbsp; to select <strong class="small_left_margin" aria-label="Escape">esc</strong>&nbsp; to dismiss
+			</span>
+		</ts-jumper-help>
+		<input type="text" aria-label="Jump to a conversation. Up arrow and down arrow navigates results, return selects, escape closes." spellcheck="false" data-qa="jumper_input">
+		<div id="" class="monkey_scroll_wrapper "><div class="monkey_scroll_bar  hidden" style="margin-left: 3.5px;"><div class="monkey_scroll_handle " style="left: 0px;">	<div class="monkey_scroll_handle_inner "></div></div></div><div class="monkey_scroll_hider" style="width: 100%;"><ts-jumper-results class="monkey_scroller"></ts-jumper-results></div></div>
+	</ts-jumper-container>
+</ts-jumper><div style="position: absolute; top: -10000px; left: -10000px; width: 380px; font-size: 15px; font-family: Slack-Lato, appleLogo, sans-serif; font-weight: 400; line-height: 20px; resize: none; word-wrap: break-word;">...</div>
+
+
+
+
+
+
+
+
+<div id="ts_tip_float_floater" style="width:13px; height:18px;" class="ts_tip ts_tip_top ts_tip_hidden"><span class="ts_tip_tip" data-tip-toggle-auto="Unstar this file">Star this file</span></div></body></html>
